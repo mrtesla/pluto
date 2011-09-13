@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-$:.push File.expand_path("../../pluto/lib", __FILE__)
+$:.push File.expand_path("../../pluto-core/lib", __FILE__)
 require "pluto/version"
 
 Gem::Specification.new do |s|

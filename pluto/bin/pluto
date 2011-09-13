@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+TOOLS = %w( supervisor )
+
+if TOOLS.include?(ARGV[0])
+  require 'shellwords'
+  Kernel.exec(Shellwords.join(["pluto-#{ARGV[0]}"] + ARGV[1..-1]))
+end
+
+puts "usage: pluto #{TOOLS.join('|')} ..."
+exit 1
