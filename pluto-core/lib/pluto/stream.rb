@@ -19,6 +19,7 @@ class Pluto::Stream
     
     @req = EventMachine::HttpRequest.new(@endpoint).get(
       :head      => @headers,
+      :keepalive => false,
       :redirects => 3)
     
     @req.stream do |chunk|
@@ -26,15 +27,17 @@ class Pluto::Stream
       _receive_message(message)
     end
     
-    @req.callback do
+    @req.callback do |_|
       @req = nil
       EM.add_timer(5) { start }
     end
     
-    @req.errback do
+    @req.errback do |_|
       @req = nil
       EM.add_timer(5) { start }
     end
+    
+    self
   end
   
   def _receive_message(message)

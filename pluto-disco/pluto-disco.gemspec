@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency "yajl-ruby"
-  s.add_runtime_dependency "goliath"
+  s.add_runtime_dependency "cramp"
+  s.add_runtime_dependency "thin"
+  s.add_runtime_dependency "http_router"
   s.add_runtime_dependency "pluto-core"
 end

@@ -1,19 +1,23 @@
-class Pluto::Supervisor::PortPublisher < Goliath::API
-  use Goliath::Rack::Params
-  use Goliath::Rack::Heartbeat
-  use Goliath::Rack::Validation::RequestMethod, %w(GET)
+class Pluto::Supervisor::PortPublisher < Cramp::Action
+  self.transport = :chunked
   
   @@subscribers = Set.new
   @@ports       = Set.new
+  
+  on_start  :subscribe
+  on_start  :send_published_ports
+  on_finish :unsubscribe
+  periodic_timer :keep_connection_alive, :every => 5
+
+  def keep_connection_alive
+    render " "
+  end
   
   def self.set_port(app, proc, service, port)
     @@ports << [app, proc, service, port]
     
     @@subscribers.each do |sub|
-      if subscriber_wants_to_know_port?(sub, app, proc, service)
-        chunk = Yajl::Encoder.encode([:set, app, proc, service, port])
-        sub.chunked_stream_send(chunk+"\n")
-      end
+      sub.notify_change(:set, app, proc, service, port)
     end
   end
   
@@ -21,56 +25,48 @@ class Pluto::Supervisor::PortPublisher < Goliath::API
     @@ports.delete [app, proc, service, port]
     
     @@subscribers.each do |sub|
-      if subscriber_wants_to_know_port?(sub, app, proc, service)
-        chunk = Yajl::Encoder.encode([:rmv, app, proc, service, port])
-        sub.chunked_stream_send(chunk+"\n")
-      end
+      sub.notify_change(:rmv, app, proc, service, port)
     end
   end
   
-  def self.subscriber_wants_to_know_port?(env, application, proc, service)
-    if env['params']
-      if v = env['params']['application']
-        return false if v != application
-      end
-      
-      if v = env['params']['proc']
-        return false if v != proc
-      end
-      
-      if v = env['params']['service']
-        return false if v != service
-      end
+  def notify_change(type, app, proc, service, port)
+    if subscribed_to_service?(app, proc, service)
+      chunk = Yajl::Encoder.encode([type, app, proc, service, port])
+      render(chunk+"\n")
+    end
+  end
+  
+  def subscribed_to_service?(application, proc, service)
+    if v = @env['HTTP_X_APP_NAME']
+      return false if v != application
+    end
+    
+    if v = @env['HTTP_X_APP_PROC']
+      return false if v != proc
+    end
+    
+    if v = @env['HTTP_X_APP_SERVICE']
+      return false if v != service
     end
     
     return true
   end
   
-  def on_close(env)
-    env['keepalive'].cancel if env['keepalive']
-    @@subscribers.delete(env)
-    env.logger.info "Connection closed."
+  def respond_with
+    [200, {'Content-Type' => 'application/json'}]
   end
-
-  def response(env)
-    @@subscribers << env
-    
-    EM.next_tick do
-      chunk = Yajl::Encoder.encode([:hello])
-      env.chunked_stream_send(chunk+"\n")
-      
-      @@ports.each do |(app, proc, service, port)|
-        if self.class.subscriber_wants_to_know_port?(env, app, proc, service)
-          chunk = Yajl::Encoder.encode([:set, app, proc, service, port])
-          env.chunked_stream_send(chunk+"\n")
-        end
-      end
+  
+  def subscribe
+    @@subscribers << self
+  end
+  
+  def send_published_ports
+    @@ports.each do |(app, proc, service, port)|
+      notify_change(:set, app, proc, service, port)
     end
-    
-    env['keepalive'] = EM.add_periodic_timer(5) {
-      env.chunked_stream_send('["keepalive"]'+"\n") }
-
-    headers = { 'Content-Type' => 'application/json', 'X-Stream' => 'Goliath' }
-    chunked_streaming_response(200, headers)
+  end
+  
+  def unsubscribe
+    @@subscribers.delete(self)
   end
 end

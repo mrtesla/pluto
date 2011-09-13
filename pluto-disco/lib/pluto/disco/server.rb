@@ -1,6 +1,9 @@
-require 'goliath'
+require 'pluto/disco'
 require 'yajl'
 require 'set'
+require 'cramp'
+require 'thin'
+require 'http_router'
 
 class Pluto::Disco::Registry
   
@@ -16,104 +19,92 @@ class Pluto::Disco::Registry
   def register(id, service)
     @services[id] = service
     
-    @subscriptions[service['type']].each do |env|
-      message = [:register, service]
-      message = Yajl::Encoder.encode(message) + "\n"
-      env.chunked_stream_send(message)
+    @subscriptions[service['type']].each do |sub|
+      sub.notify_change(:register, service)
     end
   end
   
   def unregister(id, service)
     @services.delete(id)
     
-    @subscriptions[service['type']].each do |env|
-      message = [:unregister, service]
-      message = Yajl::Encoder.encode(message) + "\n"
-      env.chunked_stream_send(message)
+    @subscriptions[service['type']].each do |sub|
+      sub.notify_change(:unregister, service)
     end
   end
   
-  def subscribe(type, env)
-    @subscriptions[type] << env
+  def subscribe(type, sub)
+    @subscriptions[type] << sub
     
     @services.each do |id, service|
       next unless service['type'] == type
-      message = [:register, service]
-      message = Yajl::Encoder.encode(message) + "\n"
-      env.chunked_stream_send(message)
+      sub.notify_change(:register, service)
     end
   end
   
-  def unsubscribe(type, env)
-    @subscriptions[type].delete(env)
+  def unsubscribe(type, sub)
+    @subscriptions[type].delete(sub)
   end
   
 end
 
-class Pluto::Disco::RegisterAPI < Goliath::API
-  def on_headers(env, headers)
-    service = Yajl::Parser.parse(headers['X-Service'])
-    id      = [service['endpoint'], service['type']].join('#')
+class Pluto::Disco::RegisterAPI < Cramp::Action
+  self.transport = :chunked
+  
+  on_start  :register
+  on_finish :unregister
+  periodic_timer :keep_connection_alive, :every => 5
+
+  def register
+    @service = Yajl::Parser.parse(@env['HTTP_X_SERVICE'])
+    @id      = [@service['endpoint'], @service['type']].join('#')
     
-    env['disco.service']    = service
-    env['disco.service.id'] = id
+    Pluto::Disco::Registry.shared.register(@id, @service)
   end
   
-  def on_close(env)
-    env['keepalive'].cancel if env['keepalive']
-    
-    Pluto::Disco::Registry.shared.unregister(
-      env['disco.service.id'], env['disco.service'])
+  def unregister
+    Pluto::Disco::Registry.shared.unregister(@id, @service)
   end
 
-  def response(env)
-    env['keepalive'] = EM.add_periodic_timer(5) do
-      env.chunked_stream_send("[\"keepalive\"]\n")
-    end
+  def keep_connection_alive
+    render " "
+  end
+end
+class Pluto::Disco::SubscribeAPI < Cramp::Action
+  self.transport = :chunked
+  
+  on_start  :subscribe
+  on_finish :unsubscribe
+  periodic_timer :keep_connection_alive, :every => 5
+
+  def subscribe
+    @type = @env['HTTP_X_SERVICE_TYPE']
     
-    Pluto::Disco::Registry.shared.register(
-      env['disco.service.id'], env['disco.service'])
-    
-    headers = { 'Content-Type' => 'application/json', 'X-Stream' => 'Goliath' }
-    chunked_streaming_response(200, headers)
+    Pluto::Disco::Registry.shared.subscribe(@type, self)
+  end
+
+  def unsubscribe
+    Pluto::Disco::Registry.shared.unsubscribe(@type, self)
+  end
+  
+  def notify_change(type, service)
+    chunk = Yajl::Encoder.encode([type, service])
+    render(chunk+"\n")
+  end
+
+  def keep_connection_alive
+    render " "
   end
 end
 
-class Pluto::Disco::SubscribeAPI < Goliath::API
-  def on_headers(env, headers)
-    type = headers['X-Service-Type']
-    
-    env['disco.service.type'] = type
-  end
+class Pluto::Disco::Server
   
-  def on_close(env)
-    env['keepalive'].cancel if env['keepalive']
-    
-    Pluto::Disco::Registry.shared.unsubscribe(
-      env['disco.service.type'], self)
-  end
-
-  def response(env)
-    env['keepalive'] = EM.add_periodic_timer(5) do
-      env.chunked_stream_send("[\"keepalive\"]\n")
+  def run
+    routes = HttpRouter.new do
+      get('/api/register').to(Pluto::Disco::RegisterAPI)
+      get('/api/subscribe').to(Pluto::Disco::SubscribeAPI)
     end
     
-    Pluto::Disco::Registry.shared.subscribe(
-      env['disco.service.type'], self)
-    
-    headers = { 'Content-Type' => 'application/json', 'X-Stream' => 'Goliath' }
-    chunked_streaming_response(200, headers)
-  end
-end
-
-class Pluto::Disco::Server < Goliath::API
-  
-  get '/api/register' do
-    run Pluto::Disco::RegisterAPI.new
-  end
-  
-  get '/api/subscribe' do
-    run Pluto::Disco::SubscribeAPI.new
+    Rack::Handler::Thin.run routes, :Port => 9000
   end
   
 end

@@ -1,15 +1,13 @@
 class Pluto::Supervisor::Runner
   
   def initialize(argv)
-    @goliath     = Goliath::Runner.new(argv, nil)
-    @goliath.app = Pluto::Supervisor::PortPublisher.new
     @supervisor  = Pluto::Supervisor::Supervisor.new
     @root        = File.expand_path('~/.pluto')
   end
   
   def run
     EM.kqueue = true if EM.kqueue?
-    EM.next_tick do
+    EM.run do
       analyzer  = Pluto::Supervisor::ApplicationAnalyser.new(@root)
       processes = analyzer.run
       @supervisor.update(processes)
@@ -23,8 +21,17 @@ class Pluto::Supervisor::Runner
         processes = analyzer.run
         @supervisor.update(processes)
       end
+      
+      @disco = Pluto::Supervisor::Disco.new('http://localhost:9000/api/register',
+        'X-Service' => Yajl::Encoder.encode(
+          'type'     => 'pluto.supervisor',
+          'name'     => 'Pluto Supervisor',
+          'endpoint' => 'http://localhost:300'
+        )
+      ).start
+      
+      Rack::Handler::Thin.run Pluto::Supervisor::PortPublisher, :Port => 3000
     end
-    @goliath.run
   end
   
 end

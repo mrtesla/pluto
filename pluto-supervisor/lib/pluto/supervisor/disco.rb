@@ -1,2 +1,2 @@
-class Pluto::Subscriber::Disco < Pluto::Stream
+class Pluto::Supervisor::Disco < Pluto::Stream
 end
