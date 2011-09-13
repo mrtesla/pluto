@@ -2,3 +2,6 @@ source "http://rubygems.org"
 
 # Specify your gem's dependencies in pluto.gemspec
 gemspec
+
+gem 'pluto-disco',      :path => File.expand_path('../..', __FILE__)
+gem 'pluto-supervisor', :path => File.expand_path('../..', __FILE__)

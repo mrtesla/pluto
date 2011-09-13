@@ -3,13 +3,13 @@ $:.push File.expand_path("../../pluto-core/lib", __FILE__)
 require "pluto/version"
 
 Gem::Specification.new do |s|
-  s.name        = "pluto"
+  s.name        = "pluto-disco"
   s.version     = Pluto::VERSION
   s.authors     = ["Simon Menke"]
   s.email       = ["simon.menke@gmail.com"]
   s.homepage    = "http://github.com/fd/pluto"
-  s.summary     = %q{[PLUTO] Easy service managment}
-  s.description = %q{[PLUTO] Easy service managment}
+  s.summary     = %q{[PLUTO] Service Discovery}
+  s.description = %q{[PLUTO] Service Discovery}
 
   s.rubyforge_project = "pluto"
 
@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency "pluto-supervisor"
-  s.add_runtime_dependency "pluto-disco"
+  s.add_runtime_dependency "yajl-ruby"
+  s.add_runtime_dependency "goliath"
+  s.add_runtime_dependency "pluto-core"
 end

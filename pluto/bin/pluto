@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-TOOLS = %w( supervisor )
+TOOLS = %w( supervisor disco )
 
 if TOOLS.include?(ARGV[0])
   require 'shellwords'
