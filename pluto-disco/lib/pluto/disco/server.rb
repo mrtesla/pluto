@@ -17,11 +17,25 @@ class Pluto::Disco::Registry
   end
   
   def register(id, service)
+    Pluto.logger.info "registered: #{service.inspect}"
+    
     @services[id] = service
     
     @subscriptions[service['type']].each do |sub|
       sub.notify_change(:register, service)
     end
+    
+    @subscriptions[nil].each do |sub|
+      sub.notify_change(:register, service)
+    end
+  end
+  
+  def get(name)
+    @services.values.each do |serv|
+      next unless serv['name'] == name
+      return serv
+    end
+    return nil
   end
   
   def unregister(id, service)
@@ -30,13 +44,17 @@ class Pluto::Disco::Registry
     @subscriptions[service['type']].each do |sub|
       sub.notify_change(:unregister, service)
     end
+    
+    @subscriptions[nil].each do |sub|
+      sub.notify_change(:unregister, service)
+    end
   end
   
   def subscribe(type, sub)
     @subscriptions[type] << sub
     
     @services.each do |id, service|
-      next unless service['type'] == type
+      next if type and service['type'] != type
       sub.notify_change(:register, service)
     end
   end
@@ -69,6 +87,7 @@ class Pluto::Disco::RegisterAPI < Cramp::Action
     render " "
   end
 end
+
 class Pluto::Disco::SubscribeAPI < Cramp::Action
   self.transport = :chunked
   
@@ -96,10 +115,28 @@ class Pluto::Disco::SubscribeAPI < Cramp::Action
   end
 end
 
+module Pluto::Disco::ConnectAPI
+  
+  def self.call(env)
+    service = env['router.params'][:service]
+    service = Pluto::Disco::Registry.shared.get(service)
+    unless service
+      return [404, {}, ['not found.']]
+    end
+    
+    rest = env['router.params'][:rest]
+    url  = [service['endpoint'], rest].flatten.compact.join('/')
+    [302, { 'Location' => url }, []]
+  end
+  
+end
+
 class Pluto::Disco::Server
   
   def run
     routes = HttpRouter.new do
+      add('/connect/:service').to(Pluto::Disco::ConnectAPI)
+      add('/connect/:service/*rest').to(Pluto::Disco::ConnectAPI)
       get('/api/register').to(Pluto::Disco::RegisterAPI)
       get('/api/subscribe').to(Pluto::Disco::SubscribeAPI)
     end

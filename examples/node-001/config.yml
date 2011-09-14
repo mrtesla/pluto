@@ -1,0 +1,11 @@
+
+pluto:
+  node: machine-001
+
+pluto-supervisor:
+  register: "localhost:9000"
+  services:
+    - pluto-disco
+
+pluto-disco:
+  endpoint: "localhost:9000"

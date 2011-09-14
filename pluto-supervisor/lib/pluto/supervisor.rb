@@ -3,9 +3,7 @@ require "pluto"
 module Pluto::Supervisor
 
   require 'yajl'
-  require 'pathname'
   require 'digest/sha1'
-  require 'logger'
   require 'cramp'
   require 'thin'
 
@@ -13,6 +11,11 @@ module Pluto::Supervisor
   require "pluto/supervisor/port_publisher"
   require "pluto/supervisor/supervisor"
   require "pluto/supervisor/runner"
+  require "pluto/supervisor/configuration"
   require "pluto/supervisor/disco"
+
+  def self.config
+    @config ||= Pluto::Supervisor::Configuration.new
+  end
 
 end

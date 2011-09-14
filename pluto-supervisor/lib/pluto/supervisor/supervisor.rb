@@ -1,7 +1,8 @@
 class Pluto::Supervisor::Supervisor
   
   def initialize
-    @processes = {}
+    @processes          = {}
+    @stopping_processes = {}
   end
   
   def update(processes)
@@ -17,8 +18,7 @@ class Pluto::Supervisor::Supervisor
     end
     
     old_processes.each do |pid|
-      process = @processes.delete(pid)
-      process.stop if process
+      stop(pid)
     end
     
     new_processes.each do |env|
@@ -30,6 +30,24 @@ class Pluto::Supervisor::Supervisor
   def start_stopped_processes
     @processes.each do |_, process|
       process.start if process.start?
+    end
+  end
+  
+  def stop_all_processes(&blk)
+    @stop_all_processes_clb = blk if blk
+    @processes.each { |k,_| stop(k) }
+  end
+  
+  def stop(pid)
+    process = @processes.delete(pid)
+    if process
+      @stopping_processes[pid] = process
+      process.stop do
+        @stopping_processes.delete(pid)
+        if @stop_all_processes_clb and @stopping_processes.empty?
+          @stop_all_processes_clb.call
+        end
+      end
     end
   end
   
@@ -53,18 +71,23 @@ class Pluto::Supervisor::Supervisor
         @state       = :starting
         @process     = ProcessWatcher.spawn(@env_with_ports, self)
         @start_timer = EM.add_timer(30) { on_running }
+        
+        Pluto.logger.info "[" + [@env['SUP_APPLICATION'], @env['SUP_PROC'], @env['SUP_INSTANCE']].join(':') + "] starting..."
       else
         # ignore
       end
     end
     
-    def stop
+    def stop(&blk)
       case @state
       when :running
+        @stop_clb = blk if blk
         @process.shutdown
       when :starting
+        @stop_clb = blk if blk
         @process.shutdown
       else
+        blk.call
         # ignore
       end
     end
@@ -72,6 +95,8 @@ class Pluto::Supervisor::Supervisor
     def on_running
       @start_timer = nil
       @state = :running
+      
+      Pluto.logger.info "[" + [@env['SUP_APPLICATION'], @env['SUP_PROC'], @env['SUP_INSTANCE']].join(':') + "] running..."
       
       # publish ports
       @ports.each do |service, port|
@@ -109,6 +134,9 @@ class Pluto::Supervisor::Supervisor
       else
         # ignore
       end
+      
+    ensure
+      @stop_clb.call if @stop_clb
     end
     
     def build_env_with_ports
@@ -119,7 +147,7 @@ class Pluto::Supervisor::Supervisor
       @env.each do |key, val|
         val = val.gsub(/[$]PORT_([a-zA-Z][a-zA-Z0-9_]*)/) do
           service = $1.downcase
-          @ports[service] ||= get_ephemeral_port
+          @ports[service] ||= Pluto::Ports.grab
           port = @ports[service]
           port.to_s
         end
@@ -128,15 +156,6 @@ class Pluto::Supervisor::Supervisor
       end
       
       env
-    end
-    
-    def get_ephemeral_port
-      socket = TCPServer.new('0.0.0.0', 0)
-      socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
-      Socket.do_not_reverse_lookup = true
-      port = socket.addr[1]
-      socket.close
-      return port
     end
     
   end
@@ -149,6 +168,7 @@ class Pluto::Supervisor::Supervisor
       pid = P.spawn(
         env,
         env['SUP_COMMAND'],
+        :pgroup          => true,
         :unsetenv_others => true,
         :chdir           => env['PWD'],
         :umask           => 022,
@@ -164,7 +184,7 @@ class Pluto::Supervisor::Supervisor
     
     def shutdown
       # send TERM
-      P.kill('TERM', pid)
+      P.kill('-TERM', pid)
       @kill_timer = EM.add_timer(15, method(:kill))
     end
     
@@ -172,7 +192,7 @@ class Pluto::Supervisor::Supervisor
       @kill_timer = nil
       
       # send KILL
-      P.kill('KILL', pid)
+      P.kill('-KILL', pid)
       @kill_timer = EM.add_timer(15, method(:kill))
     end
     

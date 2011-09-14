@@ -33,11 +33,13 @@ class Pluto::Supervisor::ApplicationAnalyser
 private
   
   def logger
-    @logger ||= Logger.new(STDOUT)
+    Pluto.logger
   end
   
   def process_application_directories
     @applications = {}
+    
+    process_buildin_applications
     
     @root.children.each do |child|
       
@@ -80,6 +82,27 @@ private
           
         end
       end
+    end
+  end
+
+  def process_buildin_applications
+    services = Pluto::Supervisor.config.services
+    
+    if services.include?('pluto-disco')
+      env = {
+        'name'     => 'pluto-disco',
+        'root'     => Pluto.root,
+        'procfile' => {
+          'endpoint' => 'bundle exec pluto disco'
+        },
+        'concurrency' => {},
+        'RUBY_VERSION' => ENV['RUBY_VERSION']
+      }
+      
+      process_default_env(env)
+      apply_rvm_env(env)
+      
+      @applications['pluto-disco'] = env
     end
   end
 
@@ -214,9 +237,16 @@ private
     end
     
     ruby_version = [impl, vers, patch].compact.join('-')
+    env['RUBY_VERSION'] = ruby_version
+    
+  end
+  
+  def apply_rvm_env(env)
+    ruby_version = env['RUBY_VERSION']
     
     unless (RVM_PATH + 'rubies' + ruby_version + 'bin').directory?
       logger.warn "Ruby not found (#{ruby_version}) for #{env['name']} (Invalid .rvmrc in #{env['root']})"
+      return
     end
     
     env['PATH']            = [
@@ -227,7 +257,6 @@ private
       env['PATH']
     ].flatten.compact.join(':')
     env['rvm_path']        = RVM_PATH
-    env['RUBY_VERSION']    = ruby_version
     env['GEM_HOME']        = RVM_PATH + 'gems' + ruby_version
     env['GEM_PATH']        = [
       (RVM_PATH + 'gems' + ruby_version),
