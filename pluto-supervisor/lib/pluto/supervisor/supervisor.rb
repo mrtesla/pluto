@@ -160,12 +160,12 @@ class Pluto::Supervisor::Supervisor
     
   end
   
-  class ProcessWatcher < EventMachine::ProcessWatch
+  class ProcessWatcher < EM::Connection
     
     P = ::Process
     
     def self.spawn(env, state)
-      pid = P.spawn(
+      args = [
         env,
         env['SUP_COMMAND'],
         :pgroup          => true,
@@ -173,13 +173,17 @@ class Pluto::Supervisor::Supervisor
         :chdir           => env['PWD'],
         :umask           => 022,
         :close_others    => true
-      )
-      EM.watch_process(pid, self, state)
+      ]
+      EM.popen("ruby #{File.expand_path('../exec.rb', __FILE__)}", self, args)
     end
     
-    def initialize(state)
+    def initialize(state, args)
       super()
-      @state = state
+      @state, @args = state, args
+    end
+    
+    def post_init
+      send_data(Yajl::Encoder.encode(@args) + "\n")
     end
     
     def shutdown
@@ -196,10 +200,13 @@ class Pluto::Supervisor::Supervisor
       @kill_timer = EM.add_timer(15, method(:kill))
     end
     
-    def process_exited
-      P.waitpid(pid)
+    def unbind
       EM.cancel_timer(@kill_timer) if @kill_timer
-      @state.on_exit($?)
+      @state.on_exit(get_status.exitstatus)
+    end
+    
+    def receive_data data
+      puts data
     end
     
   end
