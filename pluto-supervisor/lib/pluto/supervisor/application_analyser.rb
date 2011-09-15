@@ -1,6 +1,11 @@
 class Pluto::Supervisor::ApplicationAnalyser
   
-  RVM_PATH = Pathname.new(File.expand_path('~/.rvm'))
+  if Etc.getpwuid(Process.uid).name == 'root'
+    RVM_PATH = Pathname.new('/usr/local/rvm')
+  else
+    RVM_PATH = Pathname.new(File.expand_path('~/.rvm'))
+  end
+  
   RVM_RUNTIMES = %w( ruby rbx ree )
   RVM_VERSIONS = {
     'ruby' => ['1.8.7', '1.9.2'],

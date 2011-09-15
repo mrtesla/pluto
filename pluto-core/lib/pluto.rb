@@ -3,6 +3,7 @@ module Pluto
   require 'yaml'
   require 'pathname'
   require 'logger'
+  require 'etc'
   
   require 'pluto/version'
   
