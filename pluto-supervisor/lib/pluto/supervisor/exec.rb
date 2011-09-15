@@ -33,4 +33,4 @@ if Etc.getpwuid(Process.uid).name == 'root'
   Process.euid = Etc.getpwnam('pluto').uid
 end
 
-Process.exec(command)
+Process.exec("/usr/bin/env #{command}")

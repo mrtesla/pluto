@@ -65,6 +65,7 @@ private
       
       process_uidgid(env)
       process_rvmrc(env)
+      apply_rvm_env(env)
       process_envrc(env)
       
       @applications[env['name']] = env
