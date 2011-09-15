@@ -29,7 +29,9 @@ if umask
 end
 
 if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] == 'pluto'
+  Process.gid = Etc.getpwnam('pluto').gid
   Process.egid = Etc.getpwnam('pluto').gid
+  Process.uid = Etc.getpwnam('pluto').uid
   Process.euid = Etc.getpwnam('pluto').uid
 end
 
