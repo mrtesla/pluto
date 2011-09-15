@@ -189,7 +189,7 @@ private
   end
   
   def process_uidgid(env)
-    
+    env['USER'] = 'pluto'
   end
   
   def process_rvmrc(env)

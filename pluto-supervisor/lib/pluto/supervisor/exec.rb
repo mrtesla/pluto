@@ -28,7 +28,7 @@ if umask
   File.umask(umask)
 end
 
-if Etc.getpwuid(Process.uid).name == 'root'
+if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] == 'pluto'
   Process.egid = Etc.getpwnam('pluto').gid
   Process.euid = Etc.getpwnam('pluto').uid
 end
