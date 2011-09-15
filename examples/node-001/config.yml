@@ -1,11 +1,34 @@
 
 pluto:
-  node: machine-001
+  node: localhost
+
+pluto-disco:
+  endpoint: "localhost:8000"
 
 pluto-supervisor:
   register: "localhost:8000"
   services:
     - pluto-disco
+    - pluto-dashboard
 
-pluto-disco:
-  endpoint: "localhost:8000"
+pluto-dashboard:
+  register: "localhost:8000"
+  
+  machine-009.mrhenry.be:
+    band-it:
+      environments:
+        RAILS_ENV: production
+      concurrency:
+        web: 5
+      hostnames:
+        - band-it.be
+        - band-it.fr
+        - band-it.nl
+
+    b-token:
+      environments:
+        RAILS_ENV: production
+      concurrency:
+        web: 5
+      hostnames:
+        - b-token.eu

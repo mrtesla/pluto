@@ -110,6 +110,23 @@ private
       
       @applications['pluto-disco'] = env
     end
+    
+    if services.include?('pluto-dashboard')
+      env = {
+        'name'     => 'pluto-dashboard',
+        'root'     => Pluto.root,
+        'procfile' => {
+          'endpoint' => 'bundle exec pluto dashboard'
+        },
+        'concurrency' => {},
+        'RUBY_VERSION' => ENV['RUBY_VERSION']
+      }
+      
+      process_default_env(env)
+      apply_rvm_env(env)
+      
+      @applications['pluto-dashboard'] = env
+    end
   end
 
   def process_default_env(env)

@@ -126,6 +126,7 @@ module Pluto::Disco::ConnectAPI
     
     rest = env['router.params'][:rest]
     url  = [service['endpoint'], rest].flatten.compact.join('/')
+    url  = url.gsub('//', '/').sub(':/', '://')
     [302, { 'Location' => url }, []]
   end
   

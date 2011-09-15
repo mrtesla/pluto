@@ -3,6 +3,7 @@ GEMS = %w(
   pluto-core
   pluto-supervisor
   pluto-disco
+  pluto-dashboard
   pluto
 )
 

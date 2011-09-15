@@ -28,7 +28,6 @@ if umask
   File.umask(umask)
 end
 
-# $stdin.reopen('/dev/null')
 $stderr.reopen('/dev/null')
 $stdout.reopen('/dev/null')
 

@@ -1,12 +1,19 @@
 class Pluto::Configuration < Hash
   
   def self.load(root)
-    new YAML.load_file(root + 'config.yml')
+    path = (root + 'config.yml').to_s
+    new(path, YAML.load_file(path))
   end
   
-  def initialize(config)
+  def initialize(path, config)
     super()
+    @path = path
     merge! config
+  end
+  
+  def reset!
+    clear
+    merge! YAML.load_file(@path)
   end
   
   def node_name
