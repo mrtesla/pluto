@@ -10,7 +10,11 @@ class Pluto::Configuration < Hash
   end
   
   def node_name
-    self['node'] || 'localhost'
+    pluto['node'] || 'localhost'
+  end
+  
+  def pluto
+    self['pluto'] || {}
   end
   
 end
