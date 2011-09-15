@@ -28,6 +28,10 @@ if umask
   File.umask(umask)
 end
 
+$stdin.reopen('/dev/null')
+$stderr.reopen('/dev/null')
+$stdout.reopen('/dev/null')
+
 if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] == 'pluto'
   Process.gid = Etc.getpwnam('pluto').gid
   Process.egid = Etc.getpwnam('pluto').gid
