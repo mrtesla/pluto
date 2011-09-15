@@ -29,8 +29,8 @@ if umask
 end
 
 if Etc.getpwuid(Process.uid).name == 'root'
-  Process.euid = Etc.getpwnam('pluto').uid
   Process.egid = Etc.getpwnam('pluto').gid
+  Process.euid = Etc.getpwnam('pluto').uid
 end
 
 Process.exec(command)
