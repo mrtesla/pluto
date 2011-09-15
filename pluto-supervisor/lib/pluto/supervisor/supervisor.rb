@@ -174,7 +174,7 @@ class Pluto::Supervisor::Supervisor
         :umask           => 022,
         :close_others    => true
       ]
-      EM.popen("ruby #{File.expand_path('../exec.rb', __FILE__)}", self, args)
+      EM.popen("ruby #{File.expand_path('../exec.rb', __FILE__)}", self, state, args)
     end
     
     def initialize(state, args)
