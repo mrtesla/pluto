@@ -3,7 +3,7 @@ require 'bundler/setup'
 require 'yajl'
 require 'etc'
 
-args = Yajl::Parser.parse($stdin.gets)
+args = Yajl::Parser.parse(ARGV[0])
 env, command, pgroup, unsetenv_others, chdir, umask, close_others = *args
 
 if unsetenv_others
@@ -20,8 +20,13 @@ if pgroup
   Process.setpgrp
 end
 
-Dir.chdir(chdir)
-File.umask(umask)
+if chdir
+  Dir.chdir(chdir)
+end
+
+if umask
+  File.umask(umask)
+end
 
 if Etc.getpwuid(Process.uid).name == 'root'
   Process.euid = Etc.getpwnam('pluto').uid

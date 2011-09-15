@@ -168,27 +168,29 @@ class Pluto::Supervisor::Supervisor
       args = [
         env,
         env['SUP_COMMAND'],
-        :pgroup          => true,
-        :unsetenv_others => true,
-        :chdir           => env['PWD'],
-        :umask           => 022,
-        :close_others    => true
+        true,       # :pgroup
+        true,       # :unsetenv_others
+        env['PWD'], # :chdir
+        022,        # :umask
+        true        # :close_others
       ]
-      EM.popen("ruby #{File.expand_path('../exec.rb', __FILE__)}", self, state, args)
+      
+      cmd = Shellwords.escape(Yajl::Encoder.encode(args))
+      cmd = "ruby #{File.expand_path('../exec.rb', __FILE__)} #{cmd}"
+      EM.popen(cmd, self, state)
     end
     
-    def initialize(state, args)
+    def initialize(state)
       super()
-      @state, @args = state, args
+      @state = state
     end
     
     def post_init
-      send_data(Yajl::Encoder.encode(@args) + "\n")
     end
     
     def shutdown
       # send TERM
-      P.kill('-TERM', pid)
+      P.kill('-TERM', get_pid)
       @kill_timer = EM.add_timer(15, method(:kill))
     end
     
@@ -196,7 +198,7 @@ class Pluto::Supervisor::Supervisor
       @kill_timer = nil
       
       # send KILL
-      P.kill('-KILL', pid)
+      P.kill('-KILL', get_pid)
       @kill_timer = EM.add_timer(15, method(:kill))
     end
     
