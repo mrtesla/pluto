@@ -8,7 +8,7 @@ class Pluto::Supervisor::Disco < Pluto::Stream
     super("http://#{disco}/api/register",
     'X-Service' => Yajl::Encoder.encode(
       'type'     => 'pluto.supervisor',
-      'name'     => name,
+      'name'     => "pluto.supervisor.#{name}",
       'endpoint' => endpoint
     ))
   end

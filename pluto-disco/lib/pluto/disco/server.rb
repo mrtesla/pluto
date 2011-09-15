@@ -141,7 +141,8 @@ class Pluto::Disco::Server
       get('/api/subscribe').to(Pluto::Disco::SubscribeAPI)
     end
     
-    Rack::Handler::Thin.run routes, :Port => 9000
+    Rack::Handler::Thin.run routes,
+      :Port => Pluto::Disco.config.endpoint_port
   end
   
 end
