@@ -113,9 +113,8 @@ class Pluto::Varnish::SupervisorStream < Pluto::Stream
   end
   
   def [](name)
-    if @instances
-      @instances[name] || Set.new
-    end
+    @instances ||= {}
+    @instances[name] || Set.new
   end
   
 end
