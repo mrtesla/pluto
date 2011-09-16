@@ -121,6 +121,7 @@ end
 class Pluto::Varnish::ConfigurationBuilder
   
   def run
+    build_fallback
     build_envs
     build_backends
     build_frontends
@@ -170,6 +171,8 @@ private
         end
       end
       
+      p env
+      
       next if env['hostnames'].empty?
       next if env['backends'].empty?
       
@@ -207,6 +210,8 @@ private
   end
   
   def compaire_with_original_configuration
+    return unless File.file?(Pluto::Varnish.config.config_file)
+    
     old_config = File.read(Pluto::Varnish.config.config_file)
     old_config = Digest::SHA1.hexdigest(old_config)
     new_config = Digest::SHA1.hexdigest(@new_config)
