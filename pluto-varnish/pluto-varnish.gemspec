@@ -3,7 +3,7 @@ $:.push File.expand_path("../../pluto-core/lib", __FILE__)
 require "pluto/version"
 
 Gem::Specification.new do |s|
-  s.name        = "pluto-disco"
+  s.name        = "pluto-varnish"
   s.version     = Pluto::VERSION
   s.authors     = ["Simon Menke"]
   s.email       = ["simon.menke@gmail.com"]
