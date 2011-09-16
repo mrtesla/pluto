@@ -150,7 +150,7 @@ private
       name = app['name']
       next unless name
       
-      name = name.gsub(/^[a-zA-Z0-9_]+/, '_')
+      name = name.gsub(/[^a-zA-Z0-9_]+/, '_')
       
       env = {}
       env['name']      = name
