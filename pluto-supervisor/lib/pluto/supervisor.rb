@@ -13,6 +13,7 @@ module Pluto::Supervisor
   require "pluto/supervisor/runner"
   require "pluto/supervisor/configuration"
   require "pluto/supervisor/disco"
+  require "pluto/supervisor/dashboard"
 
   def self.config
     @config ||= Pluto::Supervisor::Configuration.new

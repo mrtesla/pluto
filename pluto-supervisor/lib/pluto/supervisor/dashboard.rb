@@ -31,7 +31,7 @@ class Pluto::Supervisor::Dashboard < Pluto::Stream
   end
   
   def [](name)
-    @applications[name]
+    @applications[name] if @applications
   end
   
 end
