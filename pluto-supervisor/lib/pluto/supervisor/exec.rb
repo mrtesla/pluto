@@ -28,8 +28,8 @@ if umask
   File.umask(umask)
 end
 
-$stderr.reopen('/var/log/messages')
-$stdout.reopen('/var/log/messages')
+$stderr.reopen('/var/log/messages', 'a+')
+$stdout.reopen('/var/log/messages', 'a+')
 
 if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] == 'pluto'
   Process.gid = Etc.getpwnam('pluto').gid

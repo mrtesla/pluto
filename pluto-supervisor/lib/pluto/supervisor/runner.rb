@@ -6,6 +6,9 @@ class Pluto::Supervisor::Runner
   end
   
   def run
+    $stderr.reopen('/var/log/messages', 'a+')
+    $stdout.reopen('/var/log/messages', 'a+')
+
     EM.kqueue = true if EM.kqueue?
     EM.run do
       setup_signals
