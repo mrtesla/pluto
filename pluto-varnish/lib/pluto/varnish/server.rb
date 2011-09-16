@@ -31,7 +31,7 @@ class Pluto::Varnish::DiscoStream < Pluto::Stream
       
     when 'register'
       name = supervisor['name']
-      @supervisors[name] = supervisor['endpoint']
+      @supervisors[name] = Pluto::Varnish::SupervisorStream.new(supervisor['endpoint']).start
       
     when 'unregister'
       name = supervisor['name']
@@ -117,8 +117,7 @@ class Pluto::Varnish::SupervisorStream < Pluto::Stream
   end
   
   def [](name)
-    @instances ||= Hash.new { |h,k| h[k] = Set.new }
-    @instances[name] || Set.new
+    (@instances || {})[name] || Set.new
   end
   
 end
@@ -171,10 +170,7 @@ private
       end.uniq.sort.compact
       
       Pluto::Varnish::DiscoStream.shared.each do |supervisor|
-        backends = supervisor[name]
-        next unless backends
-        
-        backends.each do |port|
+        supervisor[name].each do |port|
           env['backends'] << [supervisor.node, port]
         end
       end
