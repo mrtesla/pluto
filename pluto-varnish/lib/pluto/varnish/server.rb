@@ -25,8 +25,6 @@ class Pluto::Varnish::DiscoStream < Pluto::Stream
   end
   
   def receive_event(type, supervisor)
-    p [type, supervisor]
-    
     case type
       
     when 'register'
@@ -63,8 +61,6 @@ class Pluto::Varnish::DashboardStream < Pluto::Stream
   end
   
   def receive_event(type, application)
-    p [type, application]
-    
     case type
       
     when 'set'
@@ -96,8 +92,6 @@ class Pluto::Varnish::SupervisorStream < Pluto::Stream
   end
   
   def receive_event(type, application)
-    p [@node, type, application]
-    
     case type
       
     when 'set'
