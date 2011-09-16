@@ -31,7 +31,7 @@ class Pluto::Supervisor::PortPublisher < Cramp::Action
   
   def notify_change(type, app, proc, service, port)
     if subscribed_to_service?(app, proc, service)
-      chunk = Yajl::Encoder.encode([type, app, proc, service, port])
+      chunk = Yajl::Encoder.encode([type, { :app => app, :proc => proc, :service => service, :port => port }])
       render(chunk+"\n")
     end
   end

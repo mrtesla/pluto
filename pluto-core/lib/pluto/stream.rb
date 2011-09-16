@@ -10,6 +10,7 @@ class Pluto::Stream
   def initialize(endpoint, headers={}, options={})
     @endpoint = endpoint
     @headers  = headers
+    @restart  = true
     
     @options  = DEFAULT_OPTIONS.merge(options)
   end
@@ -35,16 +36,26 @@ class Pluto::Stream
     @req.callback do |_|
       @req = nil
       @post_connect_called = false
-      EM.add_timer(5) { start }
+      EM.add_timer(5) { start if @restart }
     end
     
     @req.errback do |_|
       @req = nil
       @post_connect_called = false
-      EM.add_timer(5) { start }
+      EM.add_timer(5) { start if @restart }
     end
     
     self
+  end
+  
+  def stop
+    return unless @req
+    
+    @restart = false
+    
+    @req.unbind('not interested')
+    @req = nil
+    @post_connect_called = false
   end
   
   def _receive_message(message)

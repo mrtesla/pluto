@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require 'pluto/varnish/server'
+Pluto::Varnish::Server.new.run

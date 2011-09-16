@@ -129,6 +129,23 @@ private
       
       @applications['pluto-dashboard'] = env
     end
+    
+    if services.include?('pluto-varnish')
+      env = {
+        'name'     => 'pluto-varnish',
+        'root'     => Pluto.root,
+        'procfile' => {
+          'endpoint' => 'bundle exec pluto varnish'
+        },
+        'concurrency' => {},
+        'RUBY_VERSION' => ENV['RUBY_VERSION']
+      }
+      
+      process_default_env(env)
+      apply_rvm_env(env)
+      
+      @applications['pluto-varnish'] = env
+    end
   end
 
   def process_default_env(env)

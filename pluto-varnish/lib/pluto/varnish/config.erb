@@ -1,0 +1,182 @@
+
+<% @backends.each do |name, hosts| %>
+director <%= name %> round-robin {
+  <% hosts.each do |host, port| %>
+  {
+    .backend = {
+      .host = "<%= host %>";
+      .port = "<%= port %>";
+    }
+  }
+  <% end %>
+}
+<% end %>
+
+backend fallback_host {
+  .host = "<%= @fallback_host %>";
+  .port = "<%= @fallback_port %>";
+}
+
+
+sub vcl_recv {
+  if (req.http.host ~ "^not_a_host$") {
+    error 404 "Unknown virtual host";
+  
+  <% @frontends.each do |domain, backend| %>
+  } elsif (req.http.host ~ "^(www.)?<%= domain %>([:]\d+)?$" &&
+           req.url ~ "^/") {
+    set req.http.host             = "<%= domain %>:" + server.port;
+    set req.http.X-Forward-Prefix = "/";
+    set req.backend               = <%= backend %>;
+  <% end %>
+  
+  } else {
+    set req.backend = fallback_host;
+  }
+
+  if (req.restarts == 0) {
+    if (req.http.x-forwarded-for) {
+      set req.http.X-Forwarded-For =
+          req.http.X-Forwarded-For + ", " + client.ip;
+    } else {
+      set req.http.X-Forwarded-For = client.ip;
+    }
+  }
+
+  if (req.http.Accept-Encoding) {
+    if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)(\?\d+)?$") {
+      # No point in compressing these
+      remove req.http.Accept-Encoding;
+    } elsif (req.http.Accept-Encoding ~ "gzip") {
+      set req.http.Accept-Encoding = "gzip";
+    } elsif (req.http.Accept-Encoding ~ "deflate") {
+      set req.http.Accept-Encoding = "deflate";
+    } else {
+      # unkown algorithm
+      remove req.http.Accept-Encoding;
+    }
+  }
+
+  if (req.request != "GET"     &&
+      req.request != "HEAD"    &&
+      req.request != "PUT"     &&
+      req.request != "POST"    &&
+      req.request != "TRACE"   &&
+      req.request != "OPTIONS" &&
+      req.request != "DELETE") {
+    /* Non-RFC2616 or CONNECT which is weird. */
+    return (pipe);
+  }
+
+  if (req.http.connection == "Upgrade" &&
+      req.http.upgrade    == "WebSocket") {
+    return (pipe);
+  }
+
+  if (req.request != "GET" && req.request != "HEAD") {
+    /* We only deal with GET and HEAD by default */
+    return (pass);
+  }
+  
+  if (req.request == "GET" && req.url ~ "\.(css|js|gif|jpg|jpeg|bmp|png|ico|img|tga|wmf)(\?\d+)?$") {
+    remove req.http.Cookie;
+    return(lookup);
+  }
+
+  if (req.http.Authorization || req.http.Cookie) {
+    /* Not cacheable by default */
+    return (pass);
+  }
+
+  return(lookup);
+}
+
+sub vcl_pipe {
+  set bereq.http.upgrade = req.http.upgrade;
+
+  # Note that only the first request to the backend will have
+  # X-Forwarded-For set.  If you use X-Forwarded-For and want to
+  # have it set for all requests, make sure to have:
+  # set bereq.http.connection = "close";
+  # here.  It is not set by default as it might break some broken web
+  # applications, like IIS with NTLM authentication.
+  return (pipe);
+}
+
+sub vcl_pass {
+  return (pass);
+}
+
+sub vcl_hash {
+  hash_data(req.url);
+
+  if (req.http.host) {
+    hash_data(req.http.host);
+  } else {
+    hash_data(server.ip);
+  }
+
+  return (hash);
+}
+
+sub vcl_hit {
+  return (deliver);
+}
+
+sub vcl_miss {
+  return (fetch);
+}
+
+sub vcl_fetch {
+  unset beresp.http.Server;
+  set beresp.http.Server = "Mr. Server";
+  
+  if (beresp.http.Content-Type ~ "^text\/html") {
+    set beresp.do_gzip = true;
+    # this should only happen for non authenticated URI's
+    # set beresp.http.Cache-Control = "max-age=600";
+  }
+  
+  if (req.url ~ "\.(css|js)(\?\d+)?$") {
+    set beresp.do_gzip = true;
+  }
+  
+  if (req.url ~ "\.(css|js|gif|jpg|jpeg|bmp|png|ico|img|tga|wmf)(\?\d+)?$") {
+    unset beresp.http.Set-Cookie;
+    set beresp.http.Cache-Control = "max-age=31536000,public";
+    
+    if (beresp.ttl < 600s) {
+      set beresp.ttl = 600s;
+    }
+  }
+  
+  if (beresp.http.Content-Type ~ "^text\/html") {
+    set beresp.do_esi = true;
+  }
+  
+  if (beresp.ttl <= 0s ||
+      beresp.http.Set-Cookie ||
+      beresp.http.Vary == "*") {
+    /*
+     * Mark as "Hit-For-Pass" for the next 2 minutes
+     */
+    set beresp.ttl = 120s;
+    return (hit_for_pass);
+  }
+
+  return (deliver);
+}
+
+sub vcl_deliver {
+  if (obj.hits > 0) {
+    set resp.http.X-Cache = "HIT";
+  } else {
+    set resp.http.X-Cache = "MISS";
+  }
+  
+  remove resp.http.X-Powered-By;
+  remove resp.http.X-Varnish;
+  remove resp.http.Via;
+  
+  return (deliver);
+}

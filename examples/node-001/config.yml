@@ -10,6 +10,7 @@ pluto-supervisor:
   services:
     - pluto-disco
     - pluto-dashboard
+    - pluto-varnish
 
 pluto-dashboard:
   register: "localhost:8000"
@@ -26,9 +27,17 @@ pluto-dashboard:
         - band-it.nl
 
     b-token:
-      environments:
-        RAILS_ENV: production
-      concurrency:
-        web: 5
+      backends:
+        - "localhost:3000"
       hostnames:
         - b-token.eu
+
+pluto-varnish:
+  register: "localhost:8000"
+  
+  config_file: "/etc/varnish/default.vcl"
+  reload_cmd:  "/etc/init.d/varnish reload"
+  
+  fallback:
+    host: "machine-003.mrhenry.be"
+    port: 8081
