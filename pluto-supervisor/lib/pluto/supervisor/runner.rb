@@ -31,6 +31,7 @@ class Pluto::Supervisor::Runner
   
   def register_with_disco
     @disco = Pluto::Supervisor::Disco.new.start
+    Pluto::Supervisor::Dashboard.shared.start
   end
   
   def start_endpoint

@@ -23,17 +23,24 @@ class Pluto::Stream
       :redirects => 3)
     
     @req.stream do |chunk|
+      unless @post_connect_called
+        @post_connect_called = true
+        post_connect
+      end
+      
       message = Yajl::Parser.parse(chunk)
       _receive_message(message)
     end
     
     @req.callback do |_|
       @req = nil
+      @post_connect_called = false
       EM.add_timer(5) { start }
     end
     
     @req.errback do |_|
       @req = nil
+      @post_connect_called = false
       EM.add_timer(5) { start }
     end
     
@@ -57,6 +64,10 @@ class Pluto::Stream
     end
     
     receive_event(message[0], message[1])
+  end
+  
+  def post_connect
+    
   end
   
   def receive_message(message)

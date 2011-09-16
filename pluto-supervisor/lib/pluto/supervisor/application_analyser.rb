@@ -62,11 +62,13 @@ private
       next unless env['procfile']
       
       process_concurrencyrc(env)
+      process_dashboard_concurrency(env)
       
       process_uidgid(env)
       process_rvmrc(env)
       apply_rvm_env(env)
       process_envrc(env)
+      process_dashboard_env(env)
       
       @applications[env['name']] = env
       
@@ -205,6 +207,15 @@ private
     env['concurrency'] = {}
   end
   
+  def process_dashboard_concurrency(env)
+    dashboard = Pluto::Supervisor::Dashboard.shared
+    conf      = dashboard[env['name']]
+    
+    return unless conf and conf['concurrency']
+    
+    env['concurrency'].merge!(conf['concurrency'] || {})
+  end
+  
   def process_uidgid(env)
     env['USER'] = 'pluto'
   end
@@ -310,6 +321,17 @@ private
         env_unset(env, $1)
         
       end
+    end
+  end
+  
+  def process_dashboard_env(env)
+    dashboard = Pluto::Supervisor::Dashboard.shared
+    conf      = dashboard[env['name']]
+    
+    return unless conf and conf['environment']
+    
+    conf['environment'].each do |key, val|
+      env_export(env, key.to_s, val.to_s)
     end
   end
   
