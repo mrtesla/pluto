@@ -61,6 +61,8 @@ class Pluto::Varnish::DashboardStream < Pluto::Stream
   end
   
   def receive_event(type, application)
+    p [type, application]
+    
     case type
       
     when 'set'
