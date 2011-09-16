@@ -25,6 +25,8 @@ class Pluto::Varnish::DiscoStream < Pluto::Stream
   end
   
   def receive_event(type, supervisor)
+    p [type, supervisor]
+    
     case type
       
     when 'register'
@@ -169,7 +171,10 @@ private
       end.uniq.sort.compact
       
       Pluto::Varnish::DiscoStream.shared.each do |supervisor|
-        supervisor[name].each do |port|
+        backends = supervisor[name]
+        next unless backends
+        
+        backends.each do |port|
           env['backends'] << [supervisor.node, port]
         end
       end
