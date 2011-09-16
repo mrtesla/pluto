@@ -94,6 +94,8 @@ class Pluto::Varnish::SupervisorStream < Pluto::Stream
   end
   
   def receive_event(type, application)
+    p [@node, type, application]
+    
     case type
       
     when 'set'
@@ -113,7 +115,7 @@ class Pluto::Varnish::SupervisorStream < Pluto::Stream
   end
   
   def [](name)
-    @instances ||= {}
+    @instances ||= Hash.new { |h,k| h[k] = Set.new }
     @instances[name] || Set.new
   end
   
@@ -171,8 +173,6 @@ private
           env['backends'] << [supervisor.node, port]
         end
       end
-      
-      p env
       
       next if env['hostnames'].empty?
       next if env['backends'].empty?
