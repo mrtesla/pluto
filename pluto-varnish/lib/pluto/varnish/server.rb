@@ -165,12 +165,12 @@ private
         end
       end
       
-      env['hostnames'] = env['hostnames'].map do |name|
-        name.to_s.sub(/^www\./, '')
+      env['hostnames'] = env['hostnames'].map do |hostname|
+        hostname.to_s.sub(/^www\./, '')
       end.uniq.sort.compact
       
       Pluto::Varnish::DiscoStream.shared.each do |supervisor|
-        supervisor[name].each do |port|
+        supervisor[app['name']].each do |port|
           env['backends'] << [supervisor.node, port]
         end
       end
