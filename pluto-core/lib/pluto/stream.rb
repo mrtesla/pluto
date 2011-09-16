@@ -23,24 +23,26 @@ class Pluto::Stream
       :keepalive => false,
       :redirects => 3)
     
+    @parser = Yajl::Parser.new
+    @parser.on_parse_complete = method(:_receive_message)
+    
     @req.stream do |chunk|
       unless @post_connect_called
         @post_connect_called = true
         post_connect
       end
       
-      message = Yajl::Parser.parse(chunk)
-      _receive_message(message)
+      @parser << chunk
     end
     
     @req.callback do |_|
-      @req = nil
+      @req = @parser = nil
       @post_connect_called = false
       EM.add_timer(5) { start if @restart }
     end
     
     @req.errback do |_|
-      @req = nil
+      @req = @parser = nil
       @post_connect_called = false
       EM.add_timer(5) { start if @restart }
     end
@@ -54,7 +56,7 @@ class Pluto::Stream
     @restart = false
     
     @req.unbind('not interested')
-    @req = nil
+    @req = @parser = nil
     @post_connect_called = false
   end
   

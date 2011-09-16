@@ -25,7 +25,7 @@ sub vcl_recv {
   <% @frontends.each do |domain, backend| %>
   } elsif (req.http.host ~ "^(www.)?<%= domain %>([:]\d+)?$" &&
            req.url ~ "^/") {
-    set req.http.host             = "<%= domain %>:" + server.port;
+    set req.http.host             = "<%= domain %>";
     set req.http.X-Forward-Prefix = "/";
     set req.backend               = <%= backend %>;
   <% end %>
