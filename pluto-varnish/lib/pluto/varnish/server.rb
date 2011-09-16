@@ -40,7 +40,7 @@ class Pluto::Varnish::DiscoStream < Pluto::Stream
   end
   
   def each(&blk)
-    @supervisors.values.each(&blk)
+    @supervisors.values.each(&blk) if @supervisors
   end
   
 end
@@ -75,7 +75,7 @@ class Pluto::Varnish::DashboardStream < Pluto::Stream
   end
   
   def each(&blk)
-    @applications.values.each(&blk)
+    @applications.values.each(&blk) if @applications
   end
   
 end
@@ -111,7 +111,9 @@ class Pluto::Varnish::SupervisorStream < Pluto::Stream
   end
   
   def [](name)
-    @instances[name] || Set.new
+    if @instances
+      @instances[name] || Set.new
+    end
   end
   
 end
