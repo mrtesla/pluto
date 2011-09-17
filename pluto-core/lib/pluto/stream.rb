@@ -32,7 +32,14 @@ class Pluto::Stream
         post_connect
       end
       
-      @parser << chunk
+      begin
+        @parser << chunk
+      rescue Yajl::ParseError => e
+        Pluto.logger.error e
+        @req.unbind(e.message)
+        @req = @parser = nil
+        @post_connect_called = false
+      end
     end
     
     @req.callback do |_|

@@ -2,8 +2,10 @@ module Pluto
   
   require 'yaml'
   require 'pathname'
-  require 'logger'
   require 'etc'
+  
+  require 'lumberjack'
+  require 'lumberjack_syslog_device'
   
   require 'pluto/version'
   
@@ -25,7 +27,10 @@ module Pluto
   end
   
   def self.logger
-    @logger ||= Logger.new(STDOUT)
+    @logger ||= begin
+      device = Lumberjack::SyslogDevice.new
+      Lumberjack::Logger.new(device)
+    end
   end
   
 end

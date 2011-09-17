@@ -124,6 +124,11 @@ class Pluto::Dashboard::Server
       get('/api/subscribe').to(Pluto::Dashboard::SubscribeAPI)
     end
     
+    EM.error_handler do |e|
+      Pluto.logger.error(e)
+      exit(1)
+    end
+    
     EM.next_tick do
       @disco = Pluto::Dashboard::Disco.new.start
     end

@@ -236,6 +236,11 @@ end
 class Pluto::Varnish::Server
   
   def run
+    EM.error_handler do |e|
+      Pluto.logger.error(e)
+      exit(1)
+    end
+    
     EM.run { _run }
   end
   

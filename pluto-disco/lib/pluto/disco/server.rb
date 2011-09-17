@@ -142,6 +142,11 @@ class Pluto::Disco::Server
       get('/api/subscribe').to(Pluto::Disco::SubscribeAPI)
     end
     
+    EM.error_handler do |e|
+      Pluto.logger.error(e)
+      exit(1)
+    end
+    
     Rack::Handler::Thin.run routes,
       :Port => Pluto::Disco.config.endpoint_port
   end

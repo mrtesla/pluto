@@ -6,10 +6,13 @@ class Pluto::Supervisor::Runner
   end
   
   def run
-    $stderr.reopen('/var/log/messages', 'a+')
-    $stdout.reopen('/var/log/messages', 'a+')
-
     EM.kqueue = true if EM.kqueue?
+    
+    EM.error_handler do |e|
+      Pluto.logger.error(e)
+      exit(1)
+    end
+    
     EM.run do
       setup_signals
       
