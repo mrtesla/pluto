@@ -60,6 +60,9 @@ class Pluto::Dashboard::Registry
       app = @applications.delete(id)
       notify_change(:rmv, app)
     end
+    
+  ensure
+    GC.start
   end
   
   def notify_change(type, app)
