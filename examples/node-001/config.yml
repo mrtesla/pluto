@@ -17,7 +17,7 @@ pluto-dashboard:
   
   machine-009.mrhenry.be:
     band-it:
-      environments:
+      environment:
         RAILS_ENV: production
       concurrency:
         web: 5
