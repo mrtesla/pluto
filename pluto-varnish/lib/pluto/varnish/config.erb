@@ -144,10 +144,6 @@ sub vcl_hit {
     error 200 "Purged. (HIT)";
   }
 
-  if (!obj.cacheable) {
-    pass;
-  }
-
   if (req.http.Cache-Control ~ "no-cache") {
     # Ignore requests via proxy caches,  IE users and badly behaved crawlers
     # like msnbot that send no-cache with every request.
