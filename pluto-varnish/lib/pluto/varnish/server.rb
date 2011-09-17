@@ -119,6 +119,8 @@ end
 class Pluto::Varnish::ConfigurationBuilder
   
   def run
+    Pluto.logger.info "[PLUTO:VARNISH]: building configuration"
+    
     build_fallback
     build_envs
     build_backends
