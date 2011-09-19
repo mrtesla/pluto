@@ -300,16 +300,18 @@ class Pluto::Supervisor::State
     end
     
     if @running_timer
-      crached
-      return
+      if @exits.size > 2
+        crached
+        return
+      end
     end
     
     now = Time.new
     
     @exits << now
-    @exits.shift if @exits.size > 3
+    @exits.shift if @exits.size > 5
     
-    if @exits.size == 3 and @exits.first > (now - 600)
+    if @exits.size == 5 and @exits.first > (now - 600)
       crached
     else
       Pluto.logger.info "[" + [@app, @proc, @instance].join(':') + "] terminated..."
