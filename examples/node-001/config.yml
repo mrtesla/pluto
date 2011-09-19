@@ -1,6 +1,7 @@
 
 pluto:
-  node: localhost
+  node:   localhost
+  logger: stdout # syslog
 
 pluto-disco:
   endpoint: "localhost:8000"
@@ -11,10 +12,19 @@ pluto-supervisor:
     - pluto-disco
     - pluto-dashboard
     - pluto-varnish
+    - pluto-monitor
+
+pluto-monitor:
+  register: "localhost:8000"
 
 pluto-dashboard:
   register: "localhost:8000"
   
+  localhost:
+    app-001:
+      concurrency:
+        web: 3
+    
   machine-009.mrhenry.be:
     band-it:
       environment:

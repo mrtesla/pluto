@@ -1,11 +1,11 @@
 class Pluto::Supervisor::Runner
   
   def initialize(argv)
-    @supervisor  = Pluto::Supervisor::Supervisor.new
-    @root        = Pluto.root + 'apps'
   end
   
   def run
+    (Pluto.root + 'pids').mkpath
+    
     EM.kqueue = true if EM.kqueue?
     
     EM.error_handler do |e|
@@ -16,28 +16,10 @@ class Pluto::Supervisor::Runner
     EM.run do
       setup_signals
       
-      analyze_application
+      Pluto::Supervisor::Supervisor.shared.start
       
-      EM.add_periodic_timer(5) do
-        @supervisor.start_stopped_processes
-      end
-      
-      EM.add_periodic_timer(15, method(:analyze_application))
-      
-      register_with_disco
       start_endpoint
     end
-  end
-  
-  def analyze_application
-    analyzer  = Pluto::Supervisor::ApplicationAnalyser.new(@root)
-    processes = analyzer.run
-    @supervisor.update(processes)
-  end
-  
-  def register_with_disco
-    @disco = Pluto::Supervisor::Disco.new.start
-    Pluto::Supervisor::Dashboard.shared.start
   end
   
   def start_endpoint
@@ -55,7 +37,7 @@ class Pluto::Supervisor::Runner
   end
   
   def stop
-    @supervisor.stop_all_processes { @server.stop }
+    @server.stop
   end
   
 end

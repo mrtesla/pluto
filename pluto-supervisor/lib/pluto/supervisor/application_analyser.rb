@@ -25,7 +25,8 @@ class Pluto::Supervisor::ApplicationAnalyser
   )
 
   
-  def initialize(root)
+  def initialize(root=nil)
+    root ||= (Pluto.root + 'apps')
     @root = Pathname.new(root.to_s)
   end
   
@@ -80,11 +81,15 @@ private
     @applications.each do |_, env|
       env['procfile'].each do |name, _|
         (env['concurrency'][name] || 1).times do |i|
-        
+          
+          proc_full_name = [env['name'], name, (i+1)].join('__')
+          pid_file = Pluto.root + 'pids' + (proc_full_name + '.pid')
+          
           proc_env = {}.merge(env)
           proc_env['SUP_PROC'] = name
-          proc_env['SUP_INSTANCE'] = i
+          proc_env['SUP_INSTANCE'] = (i + 1)
           process_proc_env(proc_env)
+          proc_env['pid_file'] = pid_file.to_s
           
           @processes << proc_env
           
@@ -145,6 +150,23 @@ private
       apply_rvm_env(env)
       
       @applications['pluto-varnish'] = env
+    end
+    
+    if services.include?('pluto-monitor')
+      env = {
+        'name'     => 'pluto-monitor',
+        'root'     => Pluto.root,
+        'procfile' => {
+          'endpoint' => 'bundle exec pluto monitor'
+        },
+        'concurrency' => {},
+        'RUBY_VERSION' => ENV['RUBY_VERSION']
+      }
+      
+      process_default_env(env)
+      apply_rvm_env(env)
+      
+      @applications['pluto-monitor'] = env
     end
   end
 

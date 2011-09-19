@@ -29,21 +29,31 @@ class Pluto::Monitor::Analyzer
     @backend   = backend
     @processes = {}
   end
+  
+  def start
+    EM.add_periodic_timer(5) { run }
+  end
 
 private
 
-  def snapshot
+  def run
+    exited_pids = []
+    new_pids    = []
+    stats       = []
+    
     last_seen_processes = @processes.dup
 
     samples = @backend.snapshot
     samples.each do |sample|
       next unless sample
 
+      is_new = false
+
       stat = last_seen_processes.delete(sample.pid)
 
       if stat
-        stat.utime_delta = sample.utime - stat.utime
-        stat.stime_delta = sample.stime - stat.stime
+        stat.utime_delta = (sample.utime - stat.utime).round(2)
+        stat.stime_delta = (sample.stime - stat.stime).round(2)
 
       else
         stat     = Pluto::Monitor::Stat.new
@@ -52,8 +62,9 @@ private
 
         stat.utime_delta = 0
         stat.stime_delta = 0
-
-        puts "[PID: #{stat.pid}] started"
+        
+        is_new = true
+        new_pids << sample.pid
       end
 
       stat.ppid  = sample.ppid
@@ -63,12 +74,28 @@ private
       stat.vsz   = sample.vsz
       stat.utime = sample.utime
       stat.stime = sample.stime
+      
+      unless is_new
+        stats << {
+          :pid         => stat.pid,
+          :ppid        => stat.ppid,
+          :pgid        => stat.pgid,
+          :rss         => stat.rss,
+          :vsz         => stat.vsz,
+          :utime       => stat.utime,
+          :stime       => stat.stime,
+          :utime_delta => stat.utime_delta,
+          :stime_delta => stat.stime_delta
+        }
+      end
     end
 
     last_seen_processes.each do |_, stat|
       @processes.delete(stat.pid)
-      puts "[PID: #{stat.pid}] exited"
+      exited_pids << stat.pid
     end
+    
+    Pluto::Monitor::SubscribeAPI.notify_changes(new_pids, exited_pids, stats)
   end
 
 end
@@ -113,6 +140,7 @@ module Pluto::Monitor
             utime += $3.to_i * 60
             utime += $2.to_i * 3600
             utime += $1.to_i * 86400
+            utime = utime.round(2)
           end
 
           if stime =~ RE_TIME
@@ -121,6 +149,7 @@ module Pluto::Monitor
             stime += $3.to_i * 60
             stime += $2.to_i * 3600
             stime += $1.to_i * 86400
+            stime = stime.round(2)
           end
 
           Pluto::Monitor::Sample.new(pid, ppid, pgid, utime, stime, rss, vsz)
@@ -128,6 +157,39 @@ module Pluto::Monitor
       end
 
     end
+  end
+end
+
+class Pluto::Monitor::SubscribeAPI < Cramp::Action
+  self.transport = :chunked
+  
+  on_start  :subscribe
+  on_finish :unsubscribe
+  periodic_timer :keep_connection_alive, :every => 5
+
+  @@subscriptions = Set.new
+
+  def subscribe
+    @@subscriptions << self
+  end
+
+  def unsubscribe
+    @@subscriptions.delete(self)
+  end
+  
+  def self.notify_changes(new_pids, exited_pids, stats)
+    @@subscriptions.each do |sub|
+      sub.notify_changes(new_pids, exited_pids, stats)
+    end
+  end
+  
+  def notify_changes(new_pids, exited_pids, stats)
+    chunk = Yajl::Encoder.encode([new_pids, exited_pids, stats])
+    render(chunk+"\n")
+  end
+
+  def keep_connection_alive
+    render " "
   end
 end
 
@@ -144,7 +206,8 @@ class Pluto::Monitor::Server
     end
 
     EM.next_tick do
-      @disco = Pluto::Monitor::Disco.new.start
+      @disco    = Pluto::Monitor::Disco.new.start
+      @analyzer = Pluto::Monitor::Analyzer.new.start
     end
 
     Rack::Handler::Thin.run routes,

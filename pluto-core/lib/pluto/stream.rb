@@ -35,7 +35,7 @@ class Pluto::Stream
       begin
         @parser << chunk
       rescue Yajl::ParseError => e
-        Pluto.logger.error e
+        Pluto.logger.error e unless e.message.include?('not found')
         @req.unbind(e.message)
         @req = @parser = nil
         @post_connect_called = false

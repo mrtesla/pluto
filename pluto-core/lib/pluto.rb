@@ -28,8 +28,13 @@ module Pluto
   
   def self.logger
     @logger ||= begin
-      device = Lumberjack::SyslogDevice.new(
-        :facility => Syslog::LOG_LOCAL7)
+      case config.pluto['logger']
+      when 'stdout'
+        device = STDOUT
+      else
+        device = Lumberjack::SyslogDevice.new(
+          :facility => Syslog::LOG_LOCAL7)
+      end
       Lumberjack::Logger.new(device)
     end
   end

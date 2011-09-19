@@ -21,5 +21,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "pluto-supervisor"
   s.add_runtime_dependency "pluto-disco"
   s.add_runtime_dependency "pluto-dashboard"
+  s.add_runtime_dependency "pluto-monitor"
   s.add_runtime_dependency "pluto-varnish"
 end

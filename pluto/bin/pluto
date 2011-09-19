@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-TOOLS = %w( supervisor disco dashboard varnish )
+TOOLS = %w( supervisor disco dashboard varnish monitor )
 
 if TOOLS.include?(ARGV[0])
   require 'shellwords'
