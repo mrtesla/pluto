@@ -52,8 +52,8 @@ private
       stat = last_seen_processes.delete(sample.pid)
 
       if stat
-        stat.utime_delta = (sample.utime - stat.utime).round(2)
-        stat.stime_delta = (sample.stime - stat.stime).round(2)
+        stat.utime_delta = (sample.utime.to_i - stat.utime.to_i).round(2)
+        stat.stime_delta = (sample.stime.to_i - stat.stime.to_i).round(2)
 
       else
         stat     = Pluto::Monitor::Stat.new
