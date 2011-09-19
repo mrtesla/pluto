@@ -313,7 +313,8 @@ class Pluto::Supervisor::State
       crached
     else
       Pluto.logger.info "[" + [@app, @proc, @instance].join(':') + "] terminated..."
-      @state = :terminated
+      @state = :waiting
+      @starting_timer = EM.add_timer(30) { @state = :terminated }
     end
     
   ensure
