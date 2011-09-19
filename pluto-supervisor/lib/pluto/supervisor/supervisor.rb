@@ -96,6 +96,18 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
       Pluto::Supervisor::Statistics.new(stats).run
     end
     
+    stats.each do |sample|
+      process = Pluto::Supervisor::Process[sample['pid']]
+      next unless process
+      
+      if sample['rss'] >= 262144000 # 250mb
+        process.terminate
+      end
+      
+      if sample['time'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
+        process.terminate
+      end
+    end
   end
   
 end
