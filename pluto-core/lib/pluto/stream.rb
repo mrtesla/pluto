@@ -33,7 +33,7 @@ class Pluto::Stream
       end
       
       begin
-        @parser << chunk
+        @parser << chunk if @parser
       rescue Yajl::ParseError => e
         Pluto.logger.error e unless e.message.include?('not found')
         @req.unbind(e.message)
