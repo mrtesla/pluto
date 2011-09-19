@@ -125,8 +125,8 @@ private
       aggregate = @aggregates[ns]
       unless aggregate
         aggregate = {
-          'mem.rss' => 0
-          'mem.vsz' => 0
+          'mem.rss' => 0,
+          'mem.vsz' => 0,
           'cpu'     => 0
         }
         @aggregates[ns] = aggregate
@@ -237,7 +237,7 @@ class Pluto::Supervisor::State
   def remove
     return if [:stopping, :stopped, :removing, :removed, :starting, :terminated].include?(@state)
     
-    @state == :removing
+    @state = :removing
     if has_process?
       Pluto::Supervisor::Process.terminate(@sup_pid)
     else
@@ -248,7 +248,7 @@ class Pluto::Supervisor::State
   def stop
     return if [:stopping, :stopped, :removing, :removed, :starting, :terminated].include?(@state)
     
-    @state == :stopping
+    @state = :stopping
     if has_process?
       Pluto::Supervisor::Process.terminate(@sup_pid)
     else
