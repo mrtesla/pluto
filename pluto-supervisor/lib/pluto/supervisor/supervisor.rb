@@ -139,7 +139,7 @@ private
   end
   
   def deliver_aggregates
-    node = Pluto.config.node_name
+    node = Pluto.config.node_name.gsub('.', '_')
     
     @aggregates.each do |ns, stats|
       stats.each do |stat, count|
