@@ -25,7 +25,7 @@ class Pluto::Configuration < Hash
       hostport = (pluto['statsd'] || 'localhost:8125').split(':', 2)
       hostname = hostport[0]
       portname = (hostport[1] || 8125).to_i
-      [hostport, portname]
+      [hostname, portname]
     end
   end
   
