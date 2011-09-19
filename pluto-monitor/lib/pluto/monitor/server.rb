@@ -52,16 +52,14 @@ private
       stat = last_seen_processes.delete(sample.pid)
 
       if stat
-        stat.utime_delta = (sample.utime.to_i - stat.utime.to_i).round(2)
-        stat.stime_delta = (sample.stime.to_i - stat.stime.to_i).round(2)
+        stat.time_delta = (sample.time.to_i - stat.time.to_i).round(2)
 
       else
         stat     = Pluto::Monitor::Stat.new
         stat.pid = sample.pid
         @processes[stat.pid] = stat
 
-        stat.utime_delta = 0
-        stat.stime_delta = 0
+        stat.time_delta = 0
         
         is_new = true
         new_pids << sample.pid
@@ -72,20 +70,17 @@ private
 
       stat.rss   = sample.rss
       stat.vsz   = sample.vsz
-      stat.utime = sample.utime
-      stat.stime = sample.stime
+      stat.time  = sample.time
       
       unless is_new
         stats << {
-          :pid         => stat.pid,
-          :ppid        => stat.ppid,
-          :pgid        => stat.pgid,
-          :rss         => stat.rss,
-          :vsz         => stat.vsz,
-          :utime       => stat.utime,
-          :stime       => stat.stime,
-          :utime_delta => stat.utime_delta,
-          :stime_delta => stat.stime_delta
+          :pid        => stat.pid,
+          :ppid       => stat.ppid,
+          :pgid       => stat.pgid,
+          :rss        => stat.rss,
+          :vsz        => stat.vsz,
+          :time       => stat.time,
+          :time_delta => stat.time_delta
         }
       end
     end
@@ -102,9 +97,9 @@ end
 
 module Pluto::Monitor
 
-  Stat   = Struct.new(:pid, :ppid, :pgid, :utime, :stime, :rss, :vsz,
-                      :utime_delta, :stime_delta)
-  Sample = Struct.new(:pid, :ppid, :pgid, :utime, :stime, :rss, :vsz)
+  Stat   = Struct.new(:pid, :ppid, :pgid, :time, :rss, :vsz,
+                      :time_delta)
+  Sample = Struct.new(:pid, :ppid, :pgid, :time, :rss, :vsz)
 
   module Backends
     module Ps
@@ -121,10 +116,10 @@ module Pluto::Monitor
       /x
 
       def self.snapshot
-        output = %x[ ps -Sax -o pid=,ppid=,pgid=,rss=,vsz=,utime=,stime= ]
+        output = %x[ ps Sax -o pid=,ppid=,pgid=,rss=,vsz=,time= ]
 
         output.split("\n").map do |line|
-          pid, ppid, pgid, rss, vsz, utime, stime = *line.split(' ')
+          pid, ppid, pgid, rss, vsz, time = *line.split(' ')
 
           pid  = pid.to_i
           ppid = ppid.to_i
@@ -134,25 +129,16 @@ module Pluto::Monitor
 
           next if Process.pid == ppid
 
-          if utime =~ RE_TIME
-            utime  = 0.0
-            utime += $4.to_f
-            utime += $3.to_i * 60
-            utime += $2.to_i * 3600
-            utime += $1.to_i * 86400
-            utime = utime.round(2)
+          if time =~ RE_TIME
+            time  = 0.0
+            time += $4.to_f
+            time += $3.to_i * 60
+            time += $2.to_i * 3600
+            time += $1.to_i * 86400
+            time = time.round(2)
           end
 
-          if stime =~ RE_TIME
-            stime  = 0.0
-            stime += $4.to_f
-            stime += $3.to_i * 60
-            stime += $2.to_i * 3600
-            stime += $1.to_i * 86400
-            stime = stime.round(2)
-          end
-
-          Pluto::Monitor::Sample.new(pid, ppid, pgid, utime, stime, rss, vsz)
+          Pluto::Monitor::Sample.new(pid, ppid, pgid, time, rss, vsz)
         end
       end
 

@@ -91,6 +91,61 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
       Pluto::Supervisor::Process.terminated(process.pid)
     end
     
+    if Pluto.stats?
+      # deliver stats
+      Pluto::Supervisor::Statistics.new(stats).run
+    end
+    
+  end
+  
+end
+
+class Pluto::Supervisor::Statistics
+  
+  def initialize(stats)
+    @stats = stats
+  end
+  
+  def run
+    aggregate_by_app_and_proc
+    deliver_aggregates
+  end
+  
+private
+
+  def aggregate_by_app_and_proc
+    @aggregates = {}
+    
+    @stats.each do |sample|
+      process = Pluto::Supervisor::Process[sample['pid']]
+      next unless process
+      
+      ns = [process.app, process.proc].join('.')
+      
+      aggregate = @aggregates[ns]
+      unless aggregate
+        aggregate = {
+          'mem.rss' => 0
+          'mem.vsz' => 0
+          'cpu'     => 0
+        }
+        @aggregates[ns] = aggregate
+      end
+      
+      aggregate['mem.rss'] += sample['rss']
+      aggregate['mem.vsz'] += sample['vsz']
+      aggregate['cpu']     += (sample['time'].to_f / 3600)
+    end
+  end
+  
+  def deliver_aggregates
+    node = Pluto.config.node_name
+    
+    @aggregates.each do |ns, stats|
+      stats.each do |stat, count|
+        Pluto.stats.count("pluto.#{node}.#{ns}.#{stat}", count)
+      end
+    end
   end
   
 end
@@ -350,6 +405,14 @@ class Pluto::Supervisor::Process
   
   def self.each(&blk)
     @@processes.each_value(&blk)
+  end
+  
+  def self.[](pid)
+    if String === pid
+      @@processes[pid]
+    else
+      @@pids[pid]
+    end
   end
   
   def self.load_pid_files

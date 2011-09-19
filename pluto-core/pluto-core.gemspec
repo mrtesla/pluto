@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'em-http-request'
   s.add_runtime_dependency 'lumberjack_syslog_device'
   s.add_runtime_dependency 'lumberjack'
+  s.add_runtime_dependency 'statsd-ruby'
 end

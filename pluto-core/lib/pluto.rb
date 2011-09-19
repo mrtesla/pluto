@@ -6,6 +6,7 @@ module Pluto
   
   require 'lumberjack'
   require 'lumberjack_syslog_device'
+  require 'statsd'
   
   require 'pluto/version'
   
@@ -24,6 +25,14 @@ module Pluto
   
   def self.config
     @configuration ||= Pluto::Configuration.load(root)
+  end
+  
+  def self.stats
+    @stats ||= Statsd.new(*config.statsd_host)
+  end
+  
+  def self.stats?
+    !!config.pluto['statsd']
   end
   
   def self.logger
