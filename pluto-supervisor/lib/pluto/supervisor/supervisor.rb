@@ -96,18 +96,18 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
       Pluto::Supervisor::Statistics.new(stats).run
     end
     
-    stats.each do |sample|
-      process = Pluto::Supervisor::Process[sample['pid']]
-      next unless process
-      
-      if sample['rss'] >= 262144000 # 250mb
-        process.terminate
-      end
-      
-      if sample['time'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
-        process.terminate
-      end
-    end
+    # stats.each do |sample|
+    #   process = Pluto::Supervisor::Process[sample['pid']]
+    #   next unless process
+    #   
+    #   if sample['rss'] >= 262144000 # 250mb
+    #     process.terminate
+    #   end
+    #   
+    #   if sample['time'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
+    #     process.terminate
+    #   end
+    # end
   end
   
 end
@@ -180,6 +180,17 @@ class Pluto::Supervisor::Supervisor
   
   def update_process_defintions
     processes = Pluto::Supervisor::ApplicationAnalyser.new.run
+    
+    processes = processes.map do |env|
+      if env['pluto.ready'] == 'true'
+        env.delete('pluto.ready')
+        env
+      else
+        nil
+      end
+    end
+    
+    processes = processes.compact
     
     Pluto::Supervisor::Definitions.update(processes)
     Pluto::Supervisor::State.update
@@ -432,10 +443,10 @@ class Pluto::Supervisor::Process
   
   def self.load_pid_files
     (Pluto.root + 'pids').children.each do |pid_file|
-      next unless pid_file.basename.to_s =~ /^(.+)__(.+)__(.+)\.pid$/
-      app, proc, instance = $1, $2, $3
-      pid, sup_pid, ports = pid_file.read.split("\n", 3)
+      next unless pid_file.basename.to_s =~ /\.pid$/
+      app, proc, instance, pid, sup_pid, ports = pid_file.read.split("\n", 6)
       pid, sup_pid, ports = pid.to_i, sup_pid.strip, Yajl::Parser.parse(ports)
+      instance = instance.to_i
 
       process = new(pid, sup_pid, app, proc, instance, ports)
       Pluto::Supervisor::State.discovered(sup_pid, app, proc, instance)
@@ -522,6 +533,9 @@ class Pluto::Supervisor::Process
     P.waitpid(tmp_pid)
     
     File.open(env['pid_file'], 'w+', 0644) do |f|
+      f.puts env['SUP_APPLICATION']
+      f.puts env['SUP_PROC']
+      f.puts env['SUP_INSTANCE']
       f.puts pid
       f.puts env['SUP_PID']
       f.puts Yajl::Encoder.encode(ports)

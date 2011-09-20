@@ -82,13 +82,12 @@ private
       env['procfile'].each do |name, _|
         (env['concurrency'][name] || 1).times do |i|
           
-          proc_full_name = [env['name'], name, (i+1)].join('__')
-          pid_file = Pluto.root + 'pids' + (proc_full_name + '.pid')
-          
           proc_env = {}.merge(env)
           proc_env['SUP_PROC'] = name
           proc_env['SUP_INSTANCE'] = (i + 1)
           process_proc_env(proc_env)
+          
+          pid_file = Pluto.root + 'pids' + (env['SUP_PID'] + '.pid')
           proc_env['pid_file'] = pid_file.to_s
           
           @processes << proc_env
@@ -109,7 +108,8 @@ private
           'endpoint' => 'bundle exec pluto disco'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'pluto.ready'  => 'true'
       }
       
       process_default_env(env)
@@ -126,7 +126,8 @@ private
           'endpoint' => 'bundle exec pluto dashboard'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'pluto.ready'  => 'true'
       }
       
       process_default_env(env)
@@ -143,7 +144,8 @@ private
           'endpoint' => 'bundle exec pluto varnish'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'pluto.ready'  => 'true'
       }
       
       process_default_env(env)
@@ -160,7 +162,8 @@ private
           'endpoint' => 'bundle exec pluto monitor'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'pluto.ready'  => 'true'
       }
       
       process_default_env(env)
@@ -251,7 +254,7 @@ private
     conf      = dashboard[env['name']]
     
     return unless conf and conf['concurrency']
-    
+    env['pluto.ready'] = 'true'
     env['concurrency'].merge!(conf['concurrency'] || {})
   end
   
@@ -369,6 +372,7 @@ private
     
     return unless conf and conf['environment']
     
+    env['pluto.ready'] = 'true'
     conf['environment'].each do |key, val|
       env_export(env, key.to_s, val.to_s)
     end
