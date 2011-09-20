@@ -78,6 +78,7 @@ private
   
   def process_application_procs
     @processes = []
+    
     @applications.each do |_, env|
       env['procfile'].each do |name, _|
         (env['concurrency'][name] || 1).times do |i|
@@ -90,7 +91,10 @@ private
           pid_file = Pluto.root + 'pids' + (env['SUP_PID'] + '.pid')
           proc_env['pid_file'] = pid_file.to_s
           
-          @processes << proc_env
+          if proc_env['SUP_READY'] == 'true'
+            proc_env.delete('SUP_READY')
+            @processes << proc_env
+          end
           
         end
       end
@@ -109,7 +113,7 @@ private
         },
         'concurrency' => {},
         'RUBY_VERSION' => ENV['RUBY_VERSION'],
-        'pluto.ready'  => 'true'
+        'SUP_READY'  => 'true'
       }
       
       process_default_env(env)
@@ -127,7 +131,7 @@ private
         },
         'concurrency' => {},
         'RUBY_VERSION' => ENV['RUBY_VERSION'],
-        'pluto.ready'  => 'true'
+        'SUP_READY'  => 'true'
       }
       
       process_default_env(env)
@@ -145,7 +149,7 @@ private
         },
         'concurrency' => {},
         'RUBY_VERSION' => ENV['RUBY_VERSION'],
-        'pluto.ready'  => 'true'
+        'SUP_READY'  => 'true'
       }
       
       process_default_env(env)
@@ -163,7 +167,7 @@ private
         },
         'concurrency' => {},
         'RUBY_VERSION' => ENV['RUBY_VERSION'],
-        'pluto.ready'  => 'true'
+        'SUP_READY'  => 'true'
       }
       
       process_default_env(env)
@@ -254,7 +258,7 @@ private
     conf      = dashboard[env['name']]
     
     return unless conf and conf['concurrency']
-    env['pluto.ready'] = 'true'
+    env['SUP_READY'] = 'true'
     env['concurrency'].merge!(conf['concurrency'] || {})
   end
   
@@ -372,7 +376,7 @@ private
     
     return unless conf and conf['environment']
     
-    env['pluto.ready'] = 'true'
+    env['SUP_READY'] = 'true'
     conf['environment'].each do |key, val|
       env_export(env, key.to_s, val.to_s)
     end
