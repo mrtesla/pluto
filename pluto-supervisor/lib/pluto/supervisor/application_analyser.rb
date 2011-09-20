@@ -82,14 +82,13 @@ private
       env['procfile'].each do |name, _|
         (env['concurrency'][name] || 1).times do |i|
           
-          proc_full_name = [env['name'], name, (i+1)].join('__')
-          pid_file = Pluto.root + 'pids' + (proc_full_name + '.pid')
-          
           proc_env = {}.merge(env)
           proc_env['SUP_PROC'] = name
           proc_env['SUP_INSTANCE'] = (i + 1)
           process_proc_env(proc_env)
-          proc_env['pid_file'] = pid_file.to_s
+          
+          pid_file = Pluto.root + 'pids' + (proc_env['SUP_PID'] + '.pid')
+          proc_env['SUP_PID_FILE'] = pid_file.to_s
           
           @processes << proc_env
           

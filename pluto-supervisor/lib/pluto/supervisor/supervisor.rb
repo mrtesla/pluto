@@ -104,7 +104,7 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
         process.terminate
       end
       
-      if sample['time'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
+      if sample['time_delta'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
         process.terminate
       end
     end
@@ -146,7 +146,7 @@ private
       
       aggregate['mem.rss'] += sample['rss']
       aggregate['mem.vsz'] += sample['vsz']
-      aggregate['cpu']     += (sample['time'].to_f / 3600)
+      aggregate['cpu']     += (sample['time_delta'].to_f / 3600)
     end
   end
   
@@ -432,10 +432,11 @@ class Pluto::Supervisor::Process
   
   def self.load_pid_files
     (Pluto.root + 'pids').children.each do |pid_file|
-      next unless pid_file.basename.to_s =~ /^(.+)__(.+)__(.+)\.pid$/
-      app, proc, instance = $1, $2, $3
-      pid, sup_pid, ports = pid_file.read.split("\n", 3)
-      pid, sup_pid, ports = pid.to_i, sup_pid.strip, Yajl::Parser.parse(ports)
+      next unless pid_file.basename.to_s =~ /\.pid$/
+      
+      info = Yajl::Parser.parse(pid_file.read)
+      app, proc, instance = info['app'], info['proc'], info['instance']
+      pid, sup_pid, ports = info['pid'], info['sup_pid'], info['ports']
 
       process = new(pid, sup_pid, app, proc, instance, ports)
       Pluto::Supervisor::State.discovered(sup_pid, app, proc, instance)
@@ -487,8 +488,6 @@ class Pluto::Supervisor::Process
     pp_r, pp_w = IO.pipe
     
     tmp_pid = P.fork do
-      env.delete('pid_file')
-      
       Process.setsid
       
       if File.file?('/var/log/messages')
@@ -521,10 +520,15 @@ class Pluto::Supervisor::Process
     pid = pp_r.gets.to_i
     P.waitpid(tmp_pid)
     
-    File.open(env['pid_file'], 'w+', 0644) do |f|
-      f.puts pid
-      f.puts env['SUP_PID']
-      f.puts Yajl::Encoder.encode(ports)
+    File.open(env['SUP_PID_FILE'], 'w+', 0644) do |f|
+      f.puts Yajl::Encoder.encode({
+        'pid'      => pid,
+        'sup_pid'  => env['SUP_PID'],
+        'app'      => env['SUP_APPLICATION'],
+        'proc'     => env['SUP_PROC'],
+        'instance' => env['SUP_INSTANCE'],
+        'ports'    => ports
+      })
     end
     
     Pluto::Supervisor::State.started(env['SUP_PID'])
@@ -594,7 +598,7 @@ class Pluto::Supervisor::Process
       Pluto::Supervisor::PortPublisher.rmv_port(@app, @proc, service, port)
     end
     
-    pid_file = Pluto.root + 'pids' + ([@app, @proc, @instance].join('__') + '.pid')
+    pid_file = Pluto.root + 'pids' + (@sup_pid + '.pid')
     File.unlink(pid_file) if File.file?(pid_file)
     
     @@pids.delete(@pid)
