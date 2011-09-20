@@ -109,9 +109,9 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
         process.terminate
       end
       
-      if sample['time_delta'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
-        process.terminate
-      end
+      # if sample['time_delta'] >= 5 # 5 cpu-sec (sample is taken every 5 sec)
+      #   process.terminate
+      # end
     end
   end
   
