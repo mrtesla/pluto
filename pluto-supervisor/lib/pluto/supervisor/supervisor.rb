@@ -181,8 +181,6 @@ class Pluto::Supervisor::Supervisor
   def update_process_defintions
     processes = Pluto::Supervisor::ApplicationAnalyser.new.run
     
-    Pluto.logger.info processes.inspect
-    
     processes = processes.map do |env|
       if env['pluto.ready'] == 'true'
         env.delete('pluto.ready')
@@ -193,8 +191,6 @@ class Pluto::Supervisor::Supervisor
     end
     
     processes = processes.compact
-    
-    Pluto.logger.info processes.inspect
     
     Pluto::Supervisor::Definitions.update(processes)
     Pluto::Supervisor::State.update
