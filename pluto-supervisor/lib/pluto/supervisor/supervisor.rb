@@ -37,6 +37,11 @@ class Pluto::Supervisor::Dashboard < Pluto::Stream
   
   def post_connect
     @applications = {}
+    @booted = true
+  end
+  
+  def booted?
+    !! @booted
   end
   
   def receive_event(type, application)
@@ -175,6 +180,7 @@ class Pluto::Supervisor::Supervisor
     Pluto::Supervisor::Dashboard.shared.start
     Pluto::Supervisor::Monitor.shared.start
     
+    EM.add_timer(5,           method(:update_process_defintions))
     EM.add_periodic_timer(30, method(:update_process_defintions))
   end
   
@@ -193,18 +199,18 @@ class Pluto::Supervisor::State
   
   def self.update
     @@processes.each_key do |sup_pid|
-      unless Pluto::Supervisor::Definitions.exists?(sup_pid)
-        remove(sup_pid)
-      end
+      next if     Pluto::Supervisor::Definitions.exists?(sup_pid)
+      next unless Pluto::Supervisor::Dashboard.shared.booted?
+      remove(sup_pid)
     end
     
     Pluto::Supervisor::Definitions.each do |sup_pid, env|
-      unless exists?(sup_pid)
-        @@processes[sup_pid] = new(sup_pid,
-          env['SUP_APPLICATION'],
-          env['SUP_PROC'],
-          env['SUP_INSTANCE'])
-      end
+      next if exists?(sup_pid)
+      
+      @@processes[sup_pid] = new(sup_pid,
+        env['SUP_APPLICATION'],
+        env['SUP_PROC'],
+        env['SUP_INSTANCE'])
     end
     
     @@processes.each do |_, state|

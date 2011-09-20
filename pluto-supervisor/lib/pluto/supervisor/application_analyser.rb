@@ -47,6 +47,8 @@ private
     
     process_buildin_applications
     
+    return unless Pluto::Supervisor::Dashboard.shared.booted?
+    
     @root.children.each do |child|
       
       env = {}
@@ -108,7 +110,8 @@ private
           'endpoint' => 'bundle exec pluto disco'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'SUP_BUILT_IN' => true
       }
       
       process_default_env(env)
@@ -125,7 +128,8 @@ private
           'endpoint' => 'bundle exec pluto dashboard'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'SUP_BUILT_IN' => true
       }
       
       process_default_env(env)
@@ -142,7 +146,8 @@ private
           'endpoint' => 'bundle exec pluto varnish'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'SUP_BUILT_IN' => true
       }
       
       process_default_env(env)
@@ -159,7 +164,8 @@ private
           'endpoint' => 'bundle exec pluto monitor'
         },
         'concurrency' => {},
-        'RUBY_VERSION' => ENV['RUBY_VERSION']
+        'RUBY_VERSION' => ENV['RUBY_VERSION'],
+        'SUP_BUILT_IN' => true
       }
       
       process_default_env(env)
