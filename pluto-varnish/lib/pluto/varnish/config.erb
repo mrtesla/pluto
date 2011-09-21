@@ -89,6 +89,11 @@ sub vcl_recv {
     /* We only deal with GET and HEAD by default */
     return (pass);
   }
+  
+  if (req.url ~ "^/lalala") {
+    /* Not cacheable by default */
+    return (pass);
+  }
 
   if (req.http.Cookie) {
     set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
@@ -102,7 +107,7 @@ sub vcl_recv {
     return(lookup);
   }
 
-  if (req.http.Authorization || req.http.Cookie || req.url ~ "^/lalala") {
+  if (req.http.Authorization || req.http.Cookie) {
     /* Not cacheable by default */
     return (pass);
   }
@@ -180,6 +185,14 @@ sub vcl_fetch {
     }
   }
 
+  if (beresp.http.Content-Type ~ "^text\/html") {
+    set beresp.do_esi = true;
+  }
+
+  if (req.url ~ "^/lalala") {
+    return (deliver);
+  }
+  
   if (req.url ~ "\.(css|js|gif|jpg|jpeg|bmp|png|ico|img|tga|wmf)(\?\d+)?$") {
     unset beresp.http.Set-Cookie;
     set beresp.http.Cache-Control = "max-age=31536000,public";
@@ -187,10 +200,6 @@ sub vcl_fetch {
     if (beresp.ttl < 3600s) {
       set beresp.ttl = 3600s;
     }
-  }
-
-  if (beresp.http.Content-Type ~ "^text\/html") {
-    set beresp.do_esi = true;
   }
 
   if (beresp.ttl <= 0s ||
