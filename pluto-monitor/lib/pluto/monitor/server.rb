@@ -52,7 +52,7 @@ private
       stat = last_seen_processes.delete(sample.pid)
 
       if stat
-        stat.time_delta = (sample.time.to_i - stat.time.to_i).round(2)
+        stat.time_delta = (sample.time.to_f - stat.time.to_f).round(2)
 
       else
         stat     = Pluto::Monitor::Stat.new
@@ -127,6 +127,7 @@ module Pluto::Monitor
           rss  = rss.to_i * 1024
           vsz  = vsz.to_i * 1024
 
+          # skip self
           next if Process.pid == ppid
 
           if time =~ RE_TIME
