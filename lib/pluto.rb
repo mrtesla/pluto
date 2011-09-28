@@ -1,19 +1,19 @@
 module Pluto
-  
+
   require 'yaml'
   require 'pathname'
   require 'etc'
-  
+
   require 'lumberjack'
   require 'lumberjack_syslog_device'
   require 'statsd'
-  
-  require 'pluto/version'
-  
-  autoload :Stream,        'pluto/stream'
-  autoload :Configuration, 'pluto/configuration'
-  autoload :Ports,         'pluto/ports'
-  
+
+  require 'pluto/core/version'
+
+  autoload :Stream,        'pluto/core/stream'
+  autoload :Configuration, 'pluto/core/configuration'
+  autoload :Ports,         'pluto/core/ports'
+
   def self.root
     @root ||= begin
       path = ENV['BUNDLE_GEMFILE']
@@ -22,19 +22,19 @@ module Pluto
       Pathname.new(path)
     end
   end
-  
+
   def self.config
     @configuration ||= Pluto::Configuration.load(root)
   end
-  
+
   def self.stats
     @stats ||= Statsd.new(*config.statsd_host)
   end
-  
+
   def self.stats?
     !!config.pluto['statsd']
   end
-  
+
   def self.logger
     @logger ||= begin
       case config.pluto['logger']
@@ -47,5 +47,5 @@ module Pluto
       Lumberjack::Logger.new(device)
     end
   end
-  
+
 end
