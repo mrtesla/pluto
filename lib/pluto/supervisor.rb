@@ -1,6 +1,6 @@
 require "pluto"
 
-module Pluto::Supervisor
+module Pluto::Node
 
   require 'yajl'
   require 'digest/sha1'
@@ -14,7 +14,7 @@ module Pluto::Supervisor
   require "pluto/supervisor/configuration"
 
   def self.config
-    @config ||= Pluto::Supervisor::Configuration.new
+    @config ||= Pluto::Node::Configuration.new
   end
 
 end

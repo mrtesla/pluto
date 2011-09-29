@@ -1,19 +1,13 @@
-module Pluto::Supervisor::UidGidAnalyser
-  
+class Pluto::Node::UidGidAnalyser
+
   PROTECTED_ENV_VARS = %w(
     USER
   )
-  
-  def self.included(base)
-    base.const_get('PROTECTED_ENV_VARS').concat(PROTECTED_ENV_VARS)
-  end
-  
-private
-  
-  def process_application(env)
-    super(env)
-    
+
+  def call(env)
+    env['PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
     env['USER'] = 'pluto'
+    return env
   end
-  
+
 end

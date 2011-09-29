@@ -1,4 +1,4 @@
-class Pluto::Supervisor::Configuration
+class Pluto::Node::Configuration
   
   def node_name
     Pluto.config.node_name

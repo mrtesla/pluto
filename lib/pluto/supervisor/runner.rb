@@ -1,4 +1,4 @@
-class Pluto::Supervisor::Runner
+class Pluto::Node::Runner
   
   def initialize(argv)
   end
@@ -16,17 +16,17 @@ class Pluto::Supervisor::Runner
     EM.run do
       setup_signals
       
-      Pluto::Supervisor::Supervisor.shared.start
+      Pluto::Node::Node.shared.start
       
       start_endpoint
     end
   end
   
   def start_endpoint
-    port    = Pluto::Supervisor.config.endpoint_port
+    port    = Pluto::Node.config.endpoint_port
     @server = Thin::Server.new('0.0.0.0', port,
       :signals => false)
-    @server.app = Pluto::Supervisor::PortPublisher
+    @server.app = Pluto::Node::PortPublisher
     @server.start
   end
   

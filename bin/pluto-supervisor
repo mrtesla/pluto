@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
 require 'pluto/supervisor'
-Pluto::Supervisor::Runner.new(ARGV).run
+Pluto::Node::Runner.new(ARGV).run

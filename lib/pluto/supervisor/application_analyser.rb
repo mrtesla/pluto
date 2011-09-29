@@ -1,22 +1,22 @@
-class Pluto::Supervisor::ApplicationAnalyser
+class Pluto::Node::ApplicationAnalyser
   
   PROTECTED_ENV_VARS = []
   
-  include Pluto::Supervisor::BaseAnalyser
-  include Pluto::Supervisor::ProcfileAnalyser
-  include Pluto::Supervisor::DashboardConcurrencyAnalyser
-  include Pluto::Supervisor::UidGidAnalyser
-  include Pluto::Supervisor::RvmAnalyser
-  include Pluto::Supervisor::NvmAnalyser
-  include Pluto::Supervisor::EnvrcAnalyser
-  include Pluto::Supervisor::DashboardEnvAnalyser
+  include Pluto::Node::BaseAnalyser
+  include Pluto::Node::ProcfileAnalyser
+  include Pluto::Node::DashboardConcurrencyAnalyser
+  include Pluto::Node::UidGidAnalyser
+  include Pluto::Node::RvmAnalyser
+  include Pluto::Node::NvmAnalyser
+  include Pluto::Node::EnvrcAnalyser
+  include Pluto::Node::DashboardEnvAnalyser
   
   def initialize(root=nil)
     super(root || (Pluto.root + 'apps'))
   end
 
   # def process_buildin_applications
-  #   services = Pluto::Supervisor.config.services
+  #   services = Pluto::Node.config.services
   #   
   #   if services.include?('pluto-disco')
   #     env = {
