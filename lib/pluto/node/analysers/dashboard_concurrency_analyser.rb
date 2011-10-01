@@ -1,16 +1,17 @@
-module Pluto::Node::DashboardConcurrencyAnalyser
-  
-private
-  
-  def process_application(env)
-    super(env)
-    
+class Pluto::Node::DashboardConcurrencyAnalyser
+
+  def call(env)
+
     dashboard = Pluto::Node::Dashboard.shared
     conf      = dashboard[env['name']]
-    
-    return unless conf and conf['concurrency']
-    
+
+    unless conf and conf['concurrency']
+      return env
+    end
+
     env['concurrency'].merge!(conf['concurrency'] || {})
+
+    return env
   end
-  
+
 end

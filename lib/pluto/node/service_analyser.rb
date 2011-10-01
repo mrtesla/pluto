@@ -1,18 +1,26 @@
 class Pluto::Node::ServiceAnalyser
-  
-  PROTECTED_ENV_VARS = []
-  
-  include Pluto::Node::BaseAnalyser
-  include Pluto::Node::ProcfileAnalyser
-  # include Pluto::Node::DashboardConcurrencyAnalyser
-  # include Pluto::Node::UidGidAnalyser
-  include Pluto::Node::RvmAnalyser
-  include Pluto::Node::NvmAnalyser
-  include Pluto::Node::EnvrcAnalyser
-  # include Pluto::Node::DashboardEnvAnalyser
-  
-  def initialize(root=nil)
-    super(root || (Pluto.root + 'services'))
+
+  ANALYZERS = [
+    Pluto::Node::BaseAnalyser,
+    Pluto::Node::ProcfileAnalyser,
+    # Pluto::Node::DashboardConcurrencyAnalyser
+    # Pluto::Node::UidGidAnalyser
+    Pluto::Node::RvmAnalyser,
+    Pluto::Node::NvmAnalyser,
+    Pluto::Node::EnvrcAnalyser
+    # Pluto::Node::DashboardEnvAnalyser
+  ]
+
+  def initialize
+    @analyzers = ANALYZERS.map { |k| k.new }
   end
-  
+
+  def call(env)
+    @analyzers.each do |analyzer|
+      env = analyzer.call(env)
+      return nil unless env
+    end
+    return env
+  end
+
 end
