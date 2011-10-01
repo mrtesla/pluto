@@ -1,11 +1,11 @@
-module Pluto::Supervisor::DashboardConcurrencyAnalyser
+module Pluto::Node::DashboardConcurrencyAnalyser
   
 private
   
   def process_application(env)
     super(env)
     
-    dashboard = Pluto::Supervisor::Dashboard.shared
+    dashboard = Pluto::Node::Dashboard.shared
     conf      = dashboard[env['name']]
     
     return unless conf and conf['concurrency']

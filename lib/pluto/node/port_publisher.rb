@@ -1,4 +1,4 @@
-class Pluto::Supervisor::PortPublisher < Cramp::Action
+class Pluto::Node::PortPublisher < Cramp::Action
   self.transport = :chunked
   
   @@subscribers = Set.new

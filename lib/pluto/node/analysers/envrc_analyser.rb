@@ -1,4 +1,4 @@
-module Pluto::Supervisor::EnvrcAnalyser
+module Pluto::Node::EnvrcAnalyser
   
 private
   

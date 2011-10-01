@@ -1,4 +1,4 @@
-module Pluto::Supervisor::UidGidAnalyser
+module Pluto::Node::UidGidAnalyser
   
   PROTECTED_ENV_VARS = %w(
     USER

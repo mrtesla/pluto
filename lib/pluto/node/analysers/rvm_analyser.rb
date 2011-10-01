@@ -1,4 +1,4 @@
-module Pluto::Supervisor::RvmAnalyser
+module Pluto::Node::RvmAnalyser
   
   if Etc.getpwuid(Process.uid).name == 'root'
     RVM_PATH = Pathname.new('/usr/local/rvm')

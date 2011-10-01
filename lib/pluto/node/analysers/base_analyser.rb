@@ -1,7 +1,7 @@
-class Pluto::Supervisor::SkipApplication < RuntimeError
+class Pluto::Node::SkipApplication < RuntimeError
 end
 
-module Pluto::Supervisor::BaseAnalyser
+module Pluto::Node::BaseAnalyser
   
   PROTECTED_ENV_VARS = %w(
     name root concurrency
@@ -41,7 +41,7 @@ protected
       
       begin
         process_application(env)
-      rescue Pluto::Supervisor::SkipApplication
+      rescue Pluto::Node::SkipApplication
         next
       end
       

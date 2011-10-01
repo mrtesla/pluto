@@ -1,4 +1,4 @@
-module Pluto::Supervisor::NvmAnalyser
+module Pluto::Node::NvmAnalyser
   
   if Etc.getpwuid(Process.uid).name == 'root'
     NVM_PATH = Pathname.new('/usr/local/nvm')

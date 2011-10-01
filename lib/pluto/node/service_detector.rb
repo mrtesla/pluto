@@ -1,14 +1,15 @@
 class Pluto::Node::ServiceDetector
 
-  def initialize(service_manager, root=nil)
+  def initialize(service_manager, dir=nil)
     @service_manager = service_manager
-    @root = Pathname.new(root || Pluto.root)
+    @dir             = dir ? Pathname.new(dir) : (Pluto.root + 'services')
+    @services        = Set.new
   end
 
   def run
-    services = []
+    services = Set.new
 
-    (@root + 'services').children.each do |child|
+    @dir.children.each do |child|
       name = child.basename.to_s
 
       unless child.symlink? or child.directory?
@@ -37,8 +38,12 @@ class Pluto::Node::ServiceDetector
 
       services << [uuid, name, child]
     end
+    
+    added_services   = services  - @services
+    removed_services = @services - services
 
-    @service_manager.process_detected_services(services)
+    @services = services
+    @service_manager.process_detected_services(added_services, removed_services)
   end
 
 end

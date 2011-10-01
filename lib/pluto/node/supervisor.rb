@@ -1,14 +1,14 @@
 
-class Pluto::Supervisor::Disco < Pluto::Stream
+class Pluto::Node::Disco < Pluto::Stream
   
   def self.shared
     @shared ||= new
   end
   
   def initialize
-    disco    = Pluto::Supervisor.config.disco_endpoint
-    name     = Pluto::Supervisor.config.node_name
-    endpoint = Pluto::Supervisor.config.endpoint
+    disco    = Pluto::Node.config.disco_endpoint
+    name     = Pluto::Node.config.node_name
+    endpoint = Pluto::Node.config.endpoint
     
     super("http://#{disco}/api/register",
     'X-Service' => Yajl::Encoder.encode(
@@ -21,15 +21,15 @@ class Pluto::Supervisor::Disco < Pluto::Stream
 end
 
 
-class Pluto::Supervisor::Dashboard < Pluto::Stream
+class Pluto::Node::Dashboard < Pluto::Stream
   
   def self.shared
     @shared ||= new
   end
   
   def initialize
-    disco    = Pluto::Supervisor.config.disco_endpoint
-    name     = Pluto::Supervisor.config.node_name
+    disco    = Pluto::Node.config.disco_endpoint
+    name     = Pluto::Node.config.node_name
     
     super("http://#{disco}/connect/pluto.dashboard/api/subscribe",
       'X-Node' => name)
@@ -60,15 +60,15 @@ class Pluto::Supervisor::Dashboard < Pluto::Stream
 end
 
 
-class Pluto::Supervisor::Monitor < Pluto::Stream
+class Pluto::Node::Monitor < Pluto::Stream
   
   def self.shared
     @shared ||= new
   end
   
   def initialize
-    disco    = Pluto::Supervisor.config.disco_endpoint
-    name     = Pluto::Supervisor.config.node_name
+    disco    = Pluto::Node.config.disco_endpoint
+    name     = Pluto::Node.config.node_name
     
     super("http://#{disco}/connect/pluto.monitor.#{name}/api/subscribe")
   end
@@ -81,23 +81,23 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
     
     # terminate pids we know exited
     exited_pids.each do |pid|
-      Pluto::Supervisor::Process.terminated(pid)
+      Pluto::Node::Process.terminated(pid)
     end
     
     # look for more pids that might be missing
-    Pluto::Supervisor::Process.each do |process|
+    Pluto::Node::Process.each do |process|
       next if stats.any? { |s| s['pid'] == process.pid }
       next if new_pids.include?(process.pid)
-      Pluto::Supervisor::Process.terminated(process.pid)
+      Pluto::Node::Process.terminated(process.pid)
     end
     
     if Pluto.stats?
       # deliver stats
-      Pluto::Supervisor::Statistics.new(stats).run
+      Pluto::Node::Statistics.new(stats).run
     end
     
     stats.each do |sample|
-      process = Pluto::Supervisor::Process[sample['pid']]
+      process = Pluto::Node::Process[sample['pid']]
       next unless process
       
       if sample['rss'] >= 262144000 # 250mb
@@ -112,7 +112,7 @@ class Pluto::Supervisor::Monitor < Pluto::Stream
   
 end
 
-class Pluto::Supervisor::Statistics
+class Pluto::Node::Statistics
   
   def initialize(stats)
     @stats = stats
@@ -129,7 +129,7 @@ private
     @aggregates = {}
     
     @stats.each do |sample|
-      process = Pluto::Supervisor::Process[sample['pid']]
+      process = Pluto::Node::Process[sample['pid']]
       next unless process
       
       ns = [process.app, process.proc].join('.')
@@ -162,43 +162,43 @@ private
   
 end
 
-class Pluto::Supervisor::Supervisor
+class Pluto::Node::Node
   
   def self.shared
     @shared ||= new
   end
   
   def start
-    Pluto::Supervisor::Process.load_pid_files
+    Pluto::Node::Process.load_pid_files
     
-    Pluto::Supervisor::Disco.shared.start
-    Pluto::Supervisor::Dashboard.shared.start
-    Pluto::Supervisor::Monitor.shared.start
+    Pluto::Node::Disco.shared.start
+    Pluto::Node::Dashboard.shared.start
+    Pluto::Node::Monitor.shared.start
     
     EM.add_periodic_timer(30, method(:update_process_defintions))
   end
   
   def update_process_defintions
-    processes = Pluto::Supervisor::ApplicationAnalyser.new.run
+    processes = Pluto::Node::ApplicationAnalyser.new.run
     
-    Pluto::Supervisor::Definitions.update(processes)
-    Pluto::Supervisor::State.update
+    Pluto::Node::Definitions.update(processes)
+    Pluto::Node::State.update
   end
   
 end
 
-class Pluto::Supervisor::State
+class Pluto::Node::State
   
   @@processes = {}
   
   def self.update
     @@processes.each_key do |sup_pid|
-      unless Pluto::Supervisor::Definitions.exists?(sup_pid)
+      unless Pluto::Node::Definitions.exists?(sup_pid)
         remove(sup_pid)
       end
     end
     
-    Pluto::Supervisor::Definitions.each do |sup_pid, env|
+    Pluto::Node::Definitions.each do |sup_pid, env|
       unless exists?(sup_pid)
         @@processes[sup_pid] = new(sup_pid,
           env['SUP_APPLICATION'],
@@ -243,7 +243,7 @@ class Pluto::Supervisor::State
   
   def start
     return unless start?
-    Pluto::Supervisor::Process.spawn(@sup_pid)
+    Pluto::Node::Process.spawn(@sup_pid)
   end
   
   def remove
@@ -251,7 +251,7 @@ class Pluto::Supervisor::State
     
     @state = :removing
     if has_process?
-      Pluto::Supervisor::Process.terminate(@sup_pid)
+      Pluto::Node::Process.terminate(@sup_pid)
     else
       removed
     end
@@ -262,7 +262,7 @@ class Pluto::Supervisor::State
     
     @state = :stopping
     if has_process?
-      Pluto::Supervisor::Process.terminate(@sup_pid)
+      Pluto::Node::Process.terminate(@sup_pid)
     else
       stopped
     end
@@ -277,7 +277,7 @@ class Pluto::Supervisor::State
     @state = :running
     @running_timer = nil
     
-    Pluto::Supervisor::Process.running(@sup_pid)
+    Pluto::Node::Process.running(@sup_pid)
     
     Pluto.logger.info "[" + [@app, @proc, @instance].join(':') + "] running..."
   end
@@ -353,12 +353,12 @@ class Pluto::Supervisor::State
   end
   
   def has_process?
-    Pluto::Supervisor::Process.exists?(@sup_pid)
+    Pluto::Node::Process.exists?(@sup_pid)
   end
   
 end
 
-module Pluto::Supervisor::Definitions
+module Pluto::Node::Definitions
   
   @@processes = {}
   
@@ -409,7 +409,7 @@ module Pluto::Supervisor::Definitions
   
 end
 
-class Pluto::Supervisor::Process
+class Pluto::Node::Process
   
   @@processes = {}
   @@pids      = {}
@@ -439,19 +439,19 @@ class Pluto::Supervisor::Process
       pid, sup_pid, ports = info['pid'], info['sup_pid'], info['ports']
 
       process = new(pid, sup_pid, app, proc, instance, ports)
-      Pluto::Supervisor::State.discovered(sup_pid, app, proc, instance)
-      Pluto::Supervisor::Process.running(sup_pid)
+      Pluto::Node::State.discovered(sup_pid, app, proc, instance)
+      Pluto::Node::Process.running(sup_pid)
       
       # shoot the monitor in the head
       if app == 'pluto-monitor'
         process.kill
-        Pluto::Supervisor::Process.terminated(sup_pid)
+        Pluto::Node::Process.terminated(sup_pid)
       end
       
       # shoot the disco in the head
       if app == 'pluto-disco'
         process.kill
-        Pluto::Supervisor::Process.terminated(sup_pid)
+        Pluto::Node::Process.terminated(sup_pid)
       end
     end
   end
@@ -475,7 +475,7 @@ class Pluto::Supervisor::Process
   end
   
   def self.spawn(sup_pid)
-    env = Pluto::Supervisor::Definitions[sup_pid]
+    env = Pluto::Node::Definitions[sup_pid]
     return unless env
     
     pid = @@processes[sup_pid]
@@ -531,7 +531,7 @@ class Pluto::Supervisor::Process
       })
     end
     
-    Pluto::Supervisor::State.started(env['SUP_PID'])
+    Pluto::Node::State.started(env['SUP_PID'])
     
     new(pid, env['SUP_PID'], env['SUP_APPLICATION'], env['SUP_PROC'], env['SUP_INSTANCE'], ports)
   end
@@ -568,7 +568,7 @@ class Pluto::Supervisor::Process
     P.kill('-TERM', @pid)
     @kill_timer = EM.add_timer(30, method(:kill))
   rescue Errno::ESRCH
-    Pluto::Supervisor::State.terminated(@sup_pid)
+    Pluto::Node::State.terminated(@sup_pid)
   end
 
   def kill
@@ -580,22 +580,22 @@ class Pluto::Supervisor::Process
   rescue Errno::ESRCH
     EM.cancel_timer(@kill_timer) if @kill_timer
     @kill_timer = nil
-    Pluto::Supervisor::State.terminated(@sup_pid)
+    Pluto::Node::State.terminated(@sup_pid)
   end
   
   def running
     @ports.each do |service, port|
-      Pluto::Supervisor::PortPublisher.set_port(@app, @proc, service, port)
+      Pluto::Node::PortPublisher.set_port(@app, @proc, service, port)
     end
   end
   
   def terminated
-    Pluto::Supervisor::State.terminated(@sup_pid)
+    Pluto::Node::State.terminated(@sup_pid)
     
     EM.cancel_timer(@kill_timer) if @kill_timer
     
     @ports.each do |service, port|
-      Pluto::Supervisor::PortPublisher.rmv_port(@app, @proc, service, port)
+      Pluto::Node::PortPublisher.rmv_port(@app, @proc, service, port)
     end
     
     pid_file = Pluto.root + 'pids' + (@sup_pid + '.pid')

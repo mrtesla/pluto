@@ -1,4 +1,4 @@
-module Pluto::Supervisor::ProcfileAnalyser
+module Pluto::Node::ProcfileAnalyser
   
   PROTECTED_ENV_VARS = %w(
     procfile
@@ -19,7 +19,7 @@ private
     # ignore applications without Procfiles
     unless procfile_path.file?
       logger.warn "Ignoring #{env['name']} (missing Procfile in #{env['root']})"
-      raise Pluto::Supervisor::SkipApplication
+      raise Pluto::Node::SkipApplication
     end
     
     # parse the procfile
@@ -37,13 +37,13 @@ private
     # verify Procfile
     unless procfile
       logger.warn "Ignoring #{env['name']} (invalid Procfile in #{env['root']})"
-      raise Pluto::Supervisor::SkipApplication
+      raise Pluto::Node::SkipApplication
     end
     
     # make sure Procfile is not empty
     if procfile.empty?
       logger.warn "Ignoring #{env['name']} (empty Procfile in #{env['root']})"
-      raise Pluto::Supervisor::SkipApplication
+      raise Pluto::Node::SkipApplication
     end
     
     env['procfile'] = procfile

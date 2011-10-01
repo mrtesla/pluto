@@ -29,7 +29,7 @@ class Pluto::Varnish::DiscoStream < Pluto::Stream
       
     when 'register'
       name = supervisor['name']
-      @supervisors[name] = Pluto::Varnish::SupervisorStream.new(supervisor['endpoint']).start
+      @supervisors[name] = Pluto::Varnish::NodeStream.new(supervisor['endpoint']).start
       
     when 'unregister'
       name = supervisor['name']
@@ -80,7 +80,7 @@ class Pluto::Varnish::DashboardStream < Pluto::Stream
   
 end
 
-class Pluto::Varnish::SupervisorStream < Pluto::Stream
+class Pluto::Varnish::NodeStream < Pluto::Stream
   
   def initialize(endpoint)
     @node = URI.parse(endpoint).host
