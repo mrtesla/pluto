@@ -43,7 +43,7 @@ class Pluto::Node::ServiceDetector
     removed_services = @services - services
 
     @services = services
-    @service_manager.process_detected_services(added_services, removed_services)
+    @service_manager.process_changes(added_services, removed_services)
   end
 
 end

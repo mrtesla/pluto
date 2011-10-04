@@ -18,14 +18,18 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency 'em-http-request'
-  s.add_runtime_dependency 'lumberjack_syslog_device'
-  s.add_runtime_dependency 'lumberjack'
-  s.add_runtime_dependency 'statsd-ruby'
+  # s.add_runtime_dependency 'em-http-request'
+  # s.add_runtime_dependency 'lumberjack_syslog_device'
+  # s.add_runtime_dependency 'lumberjack'
+  # s.add_runtime_dependency 'statsd-ruby'
 
+  # s.add_runtime_dependency 'cramp'
+  # s.add_runtime_dependency 'thin'
+  # s.add_runtime_dependency 'http_router'
+  
+  s.add_runtime_dependency 'eventmachine'
+  s.add_runtime_dependency 'state_machine'
   s.add_runtime_dependency 'yajl-ruby'
-  s.add_runtime_dependency 'cramp'
-  s.add_runtime_dependency 'thin'
-  s.add_runtime_dependency 'http_router'
+  s.add_runtime_dependency 'thor'
   
 end

@@ -1,7 +1,14 @@
 module Pluto::Node
 
-  require "pluto/node/missing_process_detector"
-  require "pluto/node/stale_process_detector"
+  require 'set'
+  require 'etc'
+  require 'pathname'
+  require 'digest/sha1'
+  require 'yajl'
+  require 'state_machine'
+  require 'eventmachine'
+
+  require 'pluto/node/task'
 
   # require 'yajl'
   # require 'digest/sha1'
