@@ -1,7 +1,6 @@
-class Pluto::Node::Task
+class Pluto::TaskManager::Task
   
   class << self
-    attr_accessor :data_dir
     attr_accessor :supervisor
   end
   
@@ -106,7 +105,7 @@ class Pluto::Node::Task
     ps
     
     new_uuids = Set.new
-    self.data_dir.children.each do |child|
+    Pluto::TaskManager::Options.data_dir.children.each do |child|
       next unless child.basename.to_s =~ RE_FILENAME
       new_uuids << $1
     end
@@ -139,9 +138,9 @@ class Pluto::Node::Task
     @supervisor['PLUTO_SUPERVISOR_GENERATION'] = generation.to_s
     ENV['PLUTO_SUPERVISOR_GENERATION'] = generation.to_s
     
-    uuid = digest_env(@supervisor)
+    uuid = @supervisor['PLUTO_TASK_UUID']
     
-    task_file = Pluto::Node::Task.data_dir + (uuid + '.task')
+    task_file = Pluto::TaskManager::Options.data_dir + (uuid + '.task')
     
     task_file.open('w+', 0640) do |f|
       f.write Yajl::Encoder.encode(@supervisor)
@@ -161,7 +160,7 @@ class Pluto::Node::Task
   def self.run_supervisor
     if ENV['PLUTO_SUPERVISOR_UUID']
       uuid = ENV['PLUTO_SUPERVISOR_UUID']
-      proc_file = Pluto::Node::Task.data_dir + (uuid + '.proc')
+      proc_file = Pluto::TaskManager::Options.data_dir + (uuid + '.proc')
       
       # wait for parent to exit
       
@@ -172,32 +171,38 @@ class Pluto::Node::Task
       end
     end
     
-    if @supervisor
-      generation = (ENV['PLUTO_SUPERVISOR_GENERATION'] || 0).to_i + 1
-      @supervisor['PLUTO_SUPERVISOR_GENERATION'] = generation.to_s
-      @supervisor['PLUTO_SUPERVISOR_UUID'] = ENV['PLUTO_TASK_UUID']
-      
-      uuid = digest_env(@supervisor)
-      task_file = Pluto::Node::Task.data_dir + (uuid + '.task')
-      
-      task_file.open('w+', 0640) do |f|
-        f.write Yajl::Encoder.encode(@supervisor)
-      end
+    uuid = ENV['PLUTO_TASK_UUID']
+    task_file = Pluto::TaskManager::Options.data_dir + (uuid + '.task')
+    @supervisor = Yajl::Parser.parse(task_file.read)
+    @supervisor.delete('PLUTO_TASK_UUID')
+    @supervisor.delete('PLUTO_SUPERVISOR_GENERATION')
+    @supervisor.delete('PLUTO_SUPERVISOR_UUID')
+    
+    generation  = (ENV['PLUTO_SUPERVISOR_GENERATION'] || 0).to_i + 1
+    @supervisor['PLUTO_SUPERVISOR_GENERATION'] = generation.to_s
+    @supervisor['PLUTO_SUPERVISOR_UUID']       = ENV['PLUTO_TASK_UUID']
+    
+    uuid = digest_env(@supervisor)
+    @supervisor['PLUTO_TASK_UUID'] = uuid
+    
+    task_file = Pluto::TaskManager::Options.data_dir + (uuid + '.task')
+    task_file.open('w+', 0640) do |f|
+      f.write Yajl::Encoder.encode(@supervisor)
     end
     
     supp = Process.pid
     
     EM.run do
-      EM.add_periodic_timer(1) { Pluto::Node::Task.tick }
+      EM.add_periodic_timer(1) { Pluto::TaskManager::Task.tick }
     end
     
   ensure
     if supp == Process.pid
       uuid = ENV['PLUTO_TASK_UUID']
     
-      task_file = Pluto::Node::Task.data_dir + (uuid + '.task')
-      stat_file = Pluto::Node::Task.data_dir + (uuid + '.stat')
-      proc_file = Pluto::Node::Task.data_dir + (uuid + '.proc')
+      task_file = Pluto::TaskManager::Options.data_dir + (uuid + '.task')
+      stat_file = Pluto::TaskManager::Options.data_dir + (uuid + '.stat')
+      proc_file = Pluto::TaskManager::Options.data_dir + (uuid + '.proc')
       
       task_file.unlink if task_file.file?
       stat_file.unlink if stat_file.file?
@@ -303,7 +308,7 @@ class Pluto::Node::Task
   
   
   def inspect
-    "#<Pluto::Node::Task: #{@env['PLUTO_TASK_UUID']}[#{state}] #{@env['PLUTO_TASK_CMD']}"+
+    "#<Pluto::TaskManager::Task: #{@env['PLUTO_TASK_UUID']}[#{state}] #{@env['PLUTO_TASK_CMD']}"+
     (@pid ? " pid:#{@pid}" : "none")+
     ">"
   end
@@ -313,15 +318,15 @@ private
   
   
   def task_file
-    @task_file ||= self.class.data_dir + (@uuid + '.task')
+    @task_file ||= Pluto::TaskManager::Options.data_dir + (@uuid + '.task')
   end
   
   def stat_file
-    @stat_file ||= self.class.data_dir + (@uuid + '.stat')
+    @stat_file ||= Pluto::TaskManager::Options.data_dir + (@uuid + '.stat')
   end
   
   def proc_file
-    @proc_file ||= self.class.data_dir + (@uuid + '.proc')
+    @proc_file ||= Pluto::TaskManager::Options.data_dir + (@uuid + '.proc')
   end
   
   
@@ -387,9 +392,9 @@ private
     ports = {}
     
     @env.each do |key, val|
-      val = val.gsub(/[$]PORT_([a-zA-Z][a-zA-Z0-9_]*)/) do
-        service = $1.downcase
-        ports[service] ||= Pluto::Ports.grab
+      val = val.gsub(/[$]PORT(?:_([a-zA-Z][a-zA-Z0-9_]*))?/) do
+        service = ($1 || 'http').downcase
+        ports[service] ||= grab_port
         port = ports[service]
         port.to_s
       end
@@ -433,6 +438,7 @@ private
         log_file = '/var/log/messages'  if File.file?('/var/log/messages')
         if File.file?('tmp/supervisor.log')
           log_file = File.expand_path('tmp/supervisor.log')
+          log_file = [log_file, 'a']
         end
         
         Process.exec(
@@ -460,6 +466,15 @@ private
     Process.waitpid(tmp_pid)
     
     check_proc_file
+  end
+  
+  def grab_port
+    socket = TCPServer.new('0.0.0.0', 0)
+    socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+    Socket.do_not_reverse_lookup = true
+    port = socket.addr[1]
+    socket.close
+    return port
   end
   
   def send_term_signal
@@ -551,7 +566,7 @@ private
   end
   
   def log(t)
-    tag = [@uuid, (@pid || 'none'), (@running_env || @env)['PLUTO_TASK_CMD']]
+    tag = [@uuid, (@pid || 'none'), (@running_env || @env || {})['PLUTO_TASK_CMD']]
     tag = tag.compact.join(' - ')
     puts "[#{tag}] moved from '#{t.from}' to '#{t.to}'"
   end

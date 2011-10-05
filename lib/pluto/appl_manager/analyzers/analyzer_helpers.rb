@@ -1,19 +1,21 @@
-module Pluto::Node::AnalyserHelpers
+module Pluto::ApplManager::AnalyzerHelpers
 
   def env_expand(val, env)
     val.gsub(/[$]([a-zA-Z][a-zA-Z0-9_]*)/) do
       var = $1
-      if /^PORT_([a-zA-Z][a-zA-Z0-9_]*)$/ =~ var
+      if /^PORT(?:_(?:[a-zA-Z][a-zA-Z0-9_]*))?$/ =~ var
         "$#{var}"
       else
-        env[var] || ''
+        (env[var] || '').to_s
       end
     end
   end
 
   def env_export(env, var, val, protect=true)
-    if protect and PROTECTED_ENV_VARS.include?(var)
-      logger.warn("Not exporting protected ENV ($#{var}) (for .envrc in #{env['root']})")
+    protected_env_vars = env['PLUTO_PROTECTED_ENV_VARS']
+    
+    if protect and protected_env_vars.include?(var)
+      logger.warn("Not exporting protected ENV ($#{var}) (for .envrc in #{env['PWD']})")
       return
     end
 
@@ -34,8 +36,10 @@ module Pluto::Node::AnalyserHelpers
   end
 
   def env_unset(env, var)
-    if PROTECTED_ENV_VARS.include?(var)
-      logger.warn("Not unsetting protected ENV ($#{var}) (for .envrc in #{env['root']})")
+    protected_env_vars = env['PLUTO_PROTECTED_ENV_VARS']
+    
+    if protected_env_vars.include?(var)
+      logger.warn("Not unsetting protected ENV ($#{var}) (for .envrc in #{env['PWD']})")
       return
     end
 

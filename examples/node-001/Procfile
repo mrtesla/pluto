@@ -1,0 +1,3 @@
+task-manager: bundle exec pluto-task-manager -p $PORT
+appl-manager: bundle exec pluto-appl-manager -p $PORT
+# disco:        bundle exec pluto-disco        -p 3000

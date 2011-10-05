@@ -1,8 +1,8 @@
-class Pluto::Node::DashboardConcurrencyAnalyser
+class Pluto::ApplManager::DashboardConcurrencyAnalyzer
 
   def call(env)
 
-    dashboard = Pluto::Node::Dashboard.shared
+    dashboard = Pluto::ApplManager::Dashboard.shared
     conf      = dashboard[env['name']]
 
     unless conf and conf['concurrency']

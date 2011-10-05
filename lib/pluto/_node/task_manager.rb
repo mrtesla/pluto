@@ -1,4 +1,4 @@
-class Pluto::Node::TaskManager
+class Pluto::TaskManager::TaskManager
 
   def initialize
 

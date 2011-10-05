@@ -1,15 +1,15 @@
-class Pluto::Node::ApplicationAnalyser
+class Pluto::Node::ApplicationAnalyzer
   
   PROTECTED_ENV_VARS = []
   
-  include Pluto::Node::BaseAnalyser
-  include Pluto::Node::ProcfileAnalyser
-  include Pluto::Node::DashboardConcurrencyAnalyser
-  include Pluto::Node::UidGidAnalyser
-  include Pluto::Node::RvmAnalyser
-  include Pluto::Node::NvmAnalyser
-  include Pluto::Node::EnvrcAnalyser
-  include Pluto::Node::DashboardEnvAnalyser
+  include Pluto::Node::BaseAnalyzer
+  include Pluto::Node::ProcfileAnalyzer
+  include Pluto::Node::DashboardConcurrencyAnalyzer
+  include Pluto::Node::UidGidAnalyzer
+  include Pluto::Node::RvmAnalyzer
+  include Pluto::Node::NvmAnalyzer
+  include Pluto::Node::EnvrcAnalyzer
+  include Pluto::Node::DashboardEnvAnalyzer
   
   def initialize(root=nil)
     super(root || (Pluto.root + 'apps'))

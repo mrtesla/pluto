@@ -1,10 +1,10 @@
-class Pluto::Node::DashboardEnvAnalyser
+class Pluto::ApplManager::DashboardEnvAnalyzer
 
-  include Pluto::Node::AnalyserHelpers
+  include Pluto::ApplManager::AnalyzerHelpers
 
   def call(env)
 
-    dashboard = Pluto::Node::Dashboard.shared
+    dashboard = Pluto::ApplManager::Dashboard.shared
     conf      = dashboard[env['name']]
 
     unless conf and conf['environment']

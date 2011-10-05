@@ -179,7 +179,7 @@ class Pluto::Node::Node
   end
   
   def update_process_defintions
-    processes = Pluto::Node::ApplicationAnalyser.new.run
+    processes = Pluto::Node::ApplicationAnalyzer.new.run
     
     Pluto::Node::Definitions.update(processes)
     Pluto::Node::State.update

@@ -1,20 +1,20 @@
-class Pluto::Node::ProcfileAnalyser
+class Pluto::ApplManager::ProcfileAnalyzer
 
-  include Pluto::Node::AnalyserHelpers
+  include Pluto::ApplManager::AnalyzerHelpers
 
   PROTECTED_ENV_VARS = %w(
     procfile
   )
 
   def call(env)
-    env['PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
+    env['PLUTO_PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
 
     # process Procfile path
-    procfile_path = env['root'] + 'Procfile'
+    procfile_path = env['PWD'] + 'Procfile'
 
     # ignore applications without Procfiles
     unless procfile_path.file?
-      logger.warn "Ignoring #{env['name']} (missing Procfile in #{env['root']})"
+      logger.warn "Ignoring #{env['PLUTO_APPL_NAME']} (missing Procfile in #{env['PWD']})"
       return nil
     end
 
@@ -32,17 +32,17 @@ class Pluto::Node::ProcfileAnalyser
 
     # verify Procfile
     unless procfile
-      logger.warn "Ignoring #{env['name']} (invalid Procfile in #{env['root']})"
+      logger.warn "Ignoring #{env['PLUTO_APPL_NAME']} (invalid Procfile in #{env['PWD']})"
       return nil
     end
 
     # make sure Procfile is not empty
     if procfile.empty?
-      logger.warn "Ignoring #{env['name']} (empty Procfile in #{env['root']})"
+      logger.warn "Ignoring #{env['PLUTO_APPL_NAME']} (empty Procfile in #{env['PWD']})"
       return nil
     end
 
-    env['procfile'] = procfile
+    env['PLUTO_PROCFILE'] = procfile
 
     return env
   end

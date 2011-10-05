@@ -2,7 +2,9 @@ module Pluto
 
   require 'pluto/core/version'
   
-  autoload :Node, 'pluto/node'
+  autoload :Node,        'pluto/node'
+  autoload :TaskManager, 'pluto/task_manager'
+  autoload :ApplManager, 'pluto/appl_manager'
 
   # require 'yaml'
   # require 'pathname'
@@ -38,18 +40,12 @@ module Pluto
   # def self.stats?
   #   !!config.pluto['statsd']
   # end
-  # 
-  # def self.logger
-  #   @logger ||= begin
-  #     case config.pluto['logger']
-  #     when 'stdout'
-  #       device = STDOUT
-  #     else
-  #       device = Lumberjack::SyslogDevice.new(
-  #         :facility => Syslog::LOG_LOCAL7)
-  #     end
-  #     Lumberjack::Logger.new(device)
-  #   end
-  # end
+
+  def self.logger
+    @logger ||= begin
+      require 'lumberjack'
+      Lumberjack::Logger.new(STDOUT)
+    end
+  end
 
 end

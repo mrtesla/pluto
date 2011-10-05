@@ -1,7 +1,4 @@
-require 'thor'
-require 'pluto/node'
-
-class Pluto::Node::Task < Thor
+class Pluto::Node::CLI < Thor
   
   class_option :root, :aliases => "-R",
     :type => :string, :default => '.',
@@ -9,11 +6,65 @@ class Pluto::Node::Task < Thor
   
   desc "start", "Start the Pluto task manager."
   def start
+    require 'digest/sha1'
+    require 'pathname'
     
+    root = Pathname.new(options[:root]).expand_path
+    
+    procfile = root + 'Procfile'
+    
+    unless procfile.file?
+      say_status('ERROR', "No Procfile found in #{root}", :red)
+      exit 1
+    end
+
+    uuid = Digest::SHA1.hexdigest([
+      'pluto',
+      root.to_s,
+      procfile.stat.mtime.to_s
+    ].join("\0"))
+    
+    # build the default env
+    env = {
+      'PWD'             => root,
+      'PLUTO_APPL_NAME' => 'pluto',
+      'PLUTO_APPL_UUID' => uuid
+    }
+    
+    # analyze the app
+    env = Pluto::ApplManager::ApplAnalyzer.new.call(env)
+    unless env
+      say_status('ERROR', "Invalid node #{root}", :red)
+      exit 1
+    end
+    
+    # analyze the procs
+    procs = Pluto::ApplManager::ProcAnalyzer.new.call(env)
+    
+    cache = Pluto::ApplManager::Options.parse!([])
+    cache = Pluto::ApplManager::ApplCache.new
+    cache.store(env, procs)
+    
+    task_manager = procs.detect do |env|
+      env['PLUTO_PROC_NAME'] == 'task-manager'
+    end
+    
+    Pluto::TaskManager::Options.parse!([])
+    Pluto::TaskManager::Task.supervisor = task_manager
+    Pluto::TaskManager::Task.boot_supervisor
   end
   
   desc "stop", "Stop the Pluto task manager."
   def stop
+    root = Pathname.new(options[:root]).expand_path
+    # Pluto::TaskManager::Task.data_dir = root + "tmp/tasks"
+    
+  end
+  
+  desc "restart", "Restart the Pluto task manager."
+  def restart
+    root = Pathname.new(options[:root]).expand_path
+    # Pluto::TaskManager::Task.data_dir = root + "tmp/tasks"
     
   end
   

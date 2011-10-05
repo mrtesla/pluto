@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'pluto'
+
+Pluto::ApplManager::Options.parse!
+Pluto::ApplManager.run

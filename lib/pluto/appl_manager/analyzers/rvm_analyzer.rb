@@ -1,11 +1,12 @@
-class Pluto::Node::RvmAnalyser
+class Pluto::ApplManager::RvmAnalyzer
 
-  include Pluto::Node::AnalyserHelpers
+  include Pluto::ApplManager::AnalyzerHelpers
 
-  if Etc.getpwuid(Process.uid).name == 'root'
-    RVM_PATH = Pathname.new('/usr/local/rvm')
-  else
-    RVM_PATH = Pathname.new(File.expand_path('~/.rvm'))
+  RVM_PATH = begin
+    [
+      Pathname.new('/usr/local/rvm'),
+      Pathname.new('~/.rvm').expand_path
+    ].detect(&:directory?)
   end
 
   RVM_RUNTIMES = %w( ruby rbx ree )
@@ -26,15 +27,20 @@ class Pluto::Node::RvmAnalyser
   )
 
   def call(env)
-    env['PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
+    env['PLUTO_PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
+    
+    return env unless RVM_PATH
+    
     process_rvmrc(env)
     apply_rvm_env(env)
+    
     return env
   end
 
   def process_rvmrc(env)
     # process .rvmrc path
-    rvmrc_path = env['root'] + '.rvmrc'
+    rvmrc_path = env['PWD'] + '.rvmrc'
+    ruby_version = nil
 
     unless rvmrc_path.file?
       # no requested ruby
@@ -51,6 +57,10 @@ class Pluto::Node::RvmAnalyser
       next unless /^[a-z0-9_.-]+$/ =~ line
       ruby_version = line
     end
+    
+    unless ruby_version
+      return
+    end
 
     # normalize ruby version
     ruby_version = ruby_version.split('-')[0,3]
@@ -60,14 +70,14 @@ class Pluto::Node::RvmAnalyser
     impl, vers, patch = *ruby_version
 
     unless RVM_RUNTIMES.include?(impl)
-      logger.warn "Using default ruby (1.8.7) for #{env['name']} (Invalid .rvmrc in #{env['root']})"
+      logger.warn "Using default ruby (1.8.7) for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
       impl = 'ruby'
     end
 
     vers ||= RVM_VERSIONS[impl].first
 
     unless RVM_VERSIONS[impl].include?(vers)
-      logger.warn "Skipping RMV for #{env['name']} (Invalid .rvmrc in #{env['root']})"
+      logger.warn "Skipping RMV for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
       return
     end
 
@@ -76,7 +86,7 @@ class Pluto::Node::RvmAnalyser
       patch ||= patches.first
 
       unless patches.include?(patch)
-        logger.warn "Skipping RMV for #{env['name']} (Invalid .rvmrc in #{env['root']})"
+        logger.warn "Skipping RMV for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
         return
       end
     end
@@ -88,8 +98,13 @@ class Pluto::Node::RvmAnalyser
   def apply_rvm_env(env)
     ruby_version = env['RUBY_VERSION']
 
+    unless ruby_version
+      logger.warn "Ruby not found (#{ruby_version}) for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
+      return
+    end
+    
     unless (RVM_PATH + 'rubies' + ruby_version + 'bin').directory?
-      logger.warn "Ruby not found (#{ruby_version}) for #{env['name']} (Invalid .rvmrc in #{env['root']})"
+      logger.warn "Ruby not found (#{ruby_version}) for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
       return
     end
 

@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
-require 'pluto/node/cli'
+require 'pluto'
 Pluto::Node::CLI.start

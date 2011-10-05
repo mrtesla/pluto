@@ -1,11 +1,12 @@
-class Pluto::Node::NvmAnalyser
+class Pluto::ApplManager::NvmAnalyzer
 
-  include Pluto::Node::AnalyserHelpers
+  include Pluto::ApplManager::AnalyzerHelpers
 
-  if Etc.getpwuid(Process.uid).name == 'root'
-    NVM_PATH = Pathname.new('/usr/local/nvm')
-  else
-    NVM_PATH = Pathname.new(File.expand_path('~/.nvm'))
+  NVM_PATH = begin
+    [
+      Pathname.new('/usr/local/nvm'),
+      Pathname.new('~/.nvm').expand_path
+    ].detect(&:directory?)
   end
 
   NVM_VERSIONS = ['v0.2.6', 'v0.4.9', 'v0.4.12']
@@ -15,15 +16,19 @@ class Pluto::Node::NvmAnalyser
   )
 
   def call(env)
-    env['PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
+    env['PLUTO_PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
+    
+    return env unless NVM_PATH
+    
     process_nvmrc(env)
     apply_nvm_env(env)
+    
     return env
   end
 
   def process_nvmrc(env)
     # process .nvmrc path
-    nvmrc_path = env['root'] + '.nvmrc'
+    nvmrc_path = env['PWD'] + '.nvmrc'
 
     unless nvmrc_path.file?
       # no requested ruby
@@ -41,7 +46,7 @@ class Pluto::Node::NvmAnalyser
     end
 
     unless NVM_VERSIONS.include?(node_version)
-      logger.warn "Skipping NMV for #{env['name']} (Invalid .nvmrc in #{env['root']})"
+      logger.warn "Skipping NMV for #{env['PLUTO_APPL_NAME']} (Invalid .nvmrc in #{env['PWD']})"
       return
     end
 
@@ -52,7 +57,7 @@ class Pluto::Node::NvmAnalyser
     node_version = env['NODE_VERSION']
 
     unless (NVM_PATH + node_version + 'bin').directory?
-      logger.warn "Node not found (#{node_version}) for #{env['name']} (Invalid .nvmrc in #{env['root']})"
+      logger.warn "Node not found (#{node_version}) for #{env['PLUTO_APPL_NAME']} (Invalid .nvmrc in #{env['root']})"
       return
     end
 

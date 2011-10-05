@@ -1,11 +1,11 @@
-class Pluto::Node::EnvrcAnalyser
+class Pluto::ApplManager::EnvrcAnalyzer
 
-  include Pluto::Node::AnalyserHelpers
+  include Pluto::ApplManager::AnalyzerHelpers
 
   def call(env)
 
     # process .envrc path
-    envrc_path = env['root'] + '.envrc'
+    envrc_path = env['PWD'] + '.envrc'
 
     unless envrc_path.file?
       # no .envrc requested
