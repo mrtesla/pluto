@@ -30,6 +30,7 @@ class Pluto::Core::Stream
     @req.stream do |chunk|
       unless @post_connect_called
         @post_connect_called = true
+        Pluto.logger.error "Connected to: #{@endpoint}"
         post_connect
       end
       
@@ -47,12 +48,14 @@ class Pluto::Core::Stream
       @req = @parser = nil
       @post_connect_called = false
       EM.add_timer(5) { start if @restart }
+      Pluto.logger.info "Connection closed: #{@endpoint}"
     end
     
     @req.errback do |_|
       @req = @parser = nil
       @post_connect_called = false
       EM.add_timer(5) { start if @restart }
+      Pluto.logger.error "Failed to connect: #{@endpoint}"
     end
     
     self
@@ -66,6 +69,10 @@ class Pluto::Core::Stream
     @req.unbind('not interested')
     @req = @parser = nil
     @post_connect_called = false
+  end
+  
+  def connected?
+    !! @parser
   end
   
   def _receive_message(message)

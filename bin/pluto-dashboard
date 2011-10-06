@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'pluto/dashboard/server'
-Pluto::Dashboard::Server.new.run
+require 'pluto'
+
+Pluto::Dashboard::Options.parse!
+Pluto::Dashboard::API.run

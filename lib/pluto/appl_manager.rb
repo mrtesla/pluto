@@ -17,6 +17,10 @@ module Pluto::ApplManager
     @detector = Pluto::ApplManager::ApplDetector.new(@cache)
     
     EM.run do
+      Pluto::Dashboard::Client.connect(
+        Pluto::ApplManager::Options.disco,
+        Pluto::ApplManager::Options.node)
+      
       EM.add_periodic_timer(3) do
         @detector.tick
       end

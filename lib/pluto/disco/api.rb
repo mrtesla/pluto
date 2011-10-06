@@ -32,20 +32,20 @@ class Pluto::Disco::API < Sinatra::Base
     end
   end
   
-  get '/:uuid/*' do
-    serv = Subscriber.find(params[:uuid])
+  get %r{/([^/]+)(?:/(.+))?} do
+    serv = Subscriber.find(params[:captures][0])
     unless serv
       halt 404, {'Content-Type' => 'text/plain'}, ''
     end
     
-    url = ['http:/', serv['endpoint'], (params[:splat] || '')].join('/')
+    url = ['http:/', serv['endpoint'], (params[:captures][1] || '')].join('/')
     redirect url
   end
   
   
   class Subscriber
 
-    @@servs = Set.new
+    @@servs = {}
     @@subs  = Set.new
     
     def self.run
@@ -59,12 +59,12 @@ class Pluto::Disco::API < Sinatra::Base
     end
     
     def self.set(serv)
-      @@servs << serv
+      @@servs[serv['uuid']] = serv
       @@subs.each { |sub| sub.notify(:set, serv) }
     end
     
     def self.rmv(serv)
-      @@servs.delete(serv)
+      @@servs.delete(serv['uuid'])
       @@subs.each { |sub| sub.notify(:rmv, serv) }
     end
 
@@ -75,7 +75,7 @@ class Pluto::Disco::API < Sinatra::Base
       stream.callback { @@subs.delete self }
       stream.errback  { @@subs.delete self }
       
-      @@servs.each do |serv|
+      @@servs.each do |_, serv|
         notify(:set, serv)
       end
     end

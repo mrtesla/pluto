@@ -5,7 +5,7 @@ module Pluto::Disco::Options
     @port     = 3000
     
     OptionParser.new do |opts|
-      opts.banner = "Usage: pluto disco [options]"
+      opts.banner = "Usage: pluto-disco [options]"
     
       opts.on("-p", "--port PORT", Integer,
               "The port for the HTTP API.") do |p|

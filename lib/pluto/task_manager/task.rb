@@ -246,12 +246,12 @@ class Pluto::TaskManager::Task
       EM.add_periodic_timer(1) { Pluto::TaskManager::Task.tick }
       Pluto::TaskManager::API.run
       
-      Pluto::Disco::Client.register(
+      @disco = Pluto::Disco::Client.register(
         Pluto::TaskManager::Options.disco,
         Pluto::TaskManager::Options.endpoint,
         Pluto::TaskManager::Options.node,
         '_task-manager'
-      )
+      ).start
     end
     
   ensure

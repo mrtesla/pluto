@@ -7,6 +7,7 @@ module Pluto
   autoload :TaskManager, 'pluto/task_manager'
   autoload :ApplManager, 'pluto/appl_manager'
   autoload :Disco,       'pluto/disco'
+  autoload :Dashboard,   'pluto/dashboard'
 
   # require 'yaml'
   # require 'pathname'
