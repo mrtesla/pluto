@@ -1,11 +1,15 @@
-require "pluto"
-
 module Pluto::Varnish
 
-  require 'pluto/varnish/configuration'
+  require 'set'
+  require 'optparse'
+  require 'yaml'
+  require 'yajl'
+  require 'eventmachine'
+  require 'thin'
+  require 'sinatra/base'
+  require 'sinatra/contrib'
 
-  def self.config
-    @config ||= Pluto::Varnish::Configuration.new
-  end
-  
+  autoload :Options, 'pluto/varnish/options'
+  autoload :API,     'pluto/varnish/api'
+
 end
