@@ -9,8 +9,12 @@ module Pluto::TaskManager
   require 'state_machine'
   require 'eventmachine'
   require 'socket'
+  require 'thin'
+  require 'sinatra/base'
+  require 'sinatra/contrib'
 
   require 'pluto/task_manager/options'
+  require 'pluto/task_manager/api'
   require 'pluto/task_manager/task'
 
 end

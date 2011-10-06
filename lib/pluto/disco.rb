@@ -1,11 +1,15 @@
-require "pluto"
-
 module Pluto::Disco
 
-  require 'pluto/disco/configuration'
+  require 'set'
+  require 'optparse'
+  require 'yajl'
+  require 'eventmachine'
+  require 'thin'
+  require 'sinatra/base'
+  require 'sinatra/contrib'
 
-  def self.config
-    @config ||= Pluto::Disco::Configuration.new
-  end
-  
+  autoload :Options, 'pluto/disco/options'
+  autoload :API,     'pluto/disco/api'
+  autoload :Client,  'pluto/disco/client'
+
 end

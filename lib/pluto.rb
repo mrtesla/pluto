@@ -2,9 +2,11 @@ module Pluto
 
   require 'pluto/core/version'
   
+  autoload :Core,        'pluto/core'
   autoload :Node,        'pluto/node'
   autoload :TaskManager, 'pluto/task_manager'
   autoload :ApplManager, 'pluto/appl_manager'
+  autoload :Disco,       'pluto/disco'
 
   # require 'yaml'
   # require 'pathname'

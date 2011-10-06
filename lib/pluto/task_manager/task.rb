@@ -2,9 +2,47 @@ class Pluto::TaskManager::Task
   
   class << self
     attr_accessor :supervisor
+    attr_writer   :shutdown
+    
+    def shutdown?
+      @shutdown
+    end
+    
+    def shutdown_core?
+      shutdown? and (begin
+        t = @tasks.values
+        s = %w( stopped removed crashed )
+        t.all? do |t| 
+          t.env['PLUTO_APPL_NAME'] == 'pluto' or s.include?(t.state)
+        end
+      end)
+    end
+    
+    def shutdown_standby?
+      t = @tasks.values
+      shutdown_core? and (begin
+        t = @tasks.values
+        s = %w( stopped removed crashed )
+        t.all? do |t| 
+          t.env['PLUTO_PROC_NAME'] == 'task-manager' or s.include?(t.state)
+        end
+      end)
+    end
+    
+    def shutdown_self?
+      shutdown_standby? and (begin
+        t = @tasks.values
+        s = %w( stopped removed crashed )
+        t.all? do |t| 
+          s.include?(t.state) or 
+          (t.env['PLUTO_PROC_NAME'] == 'task-manager' and t.env['PLUTO_SUPERVISOR_GENERATION'] == ENV['PLUTO_SUPERVISOR_GENERATION'])
+        end
+      end)
+    end
   end
   
-  @tasks = {}
+  @tasks    = {}
+  @shutdown = false
   
   state_machine :state, :initial => :stopped do
     
@@ -39,6 +77,14 @@ class Pluto::TaskManager::Task
     
     after_transition  any          => any,          :do => :update_stat_file
     after_transition  any          => :removed,     :do => :remove_stat_file
+    
+    after_transition  :starting    => :running,     :do => :publish_ports
+    after_transition  :evaluating  => :running,     :do => :publish_ports
+    after_transition  :running     => :stopping,    :do => :unpublish_ports
+    after_transition  :running     => :terminating, :do => :unpublish_ports
+    
+    after_transition  any          => any,          :do => :publish_task
+    after_transition  any          => :removed,     :do => :unpublish_task
     
     after_transition  do |task, transition|
       task.send(:log, transition)
@@ -192,8 +238,20 @@ class Pluto::TaskManager::Task
     
     supp = Process.pid
     
+    trap('INT')  { EM.stop }
+    trap('TERM') { EM.stop }
+    trap('QUIT') { Pluto::TaskManager::Task.shutdown = true }
+    
     EM.run do
       EM.add_periodic_timer(1) { Pluto::TaskManager::Task.tick }
+      Pluto::TaskManager::API.run
+      
+      Pluto::Disco::Client.register(
+        Pluto::TaskManager::Options.disco,
+        Pluto::TaskManager::Options.endpoint,
+        Pluto::TaskManager::Options.node,
+        '_task-manager'
+      )
     end
     
   ensure
@@ -273,6 +331,11 @@ class Pluto::TaskManager::Task
       @grace_timer = Time.at(@grace_timer) if @grace_timer
     end
     
+    if @state
+      publish_ports if @state == 'running'
+      publish_task
+    end
+    
     if @env
       @env['PLUTO_TASK_UUID'] = @uuid
     end
@@ -282,11 +345,31 @@ class Pluto::TaskManager::Task
   
   
   attr_writer :enabled
-  attr_reader :pid
+  attr_reader :pid, :env
   
   
   def enabled?
-    @enabled
+    unless @env['PLUTO_APPL_NAME'] == 'pluto'
+      if Pluto::TaskManager::Task.shutdown?
+        return false
+      else
+        return @enabled
+      end
+    end
+    
+    unless @env['PLUTO_PROC_NAME'] == 'task-manager'
+      if Pluto::TaskManager::Task.shutdown_core?
+        return false
+      else
+        @enabled
+      end
+    end
+    
+    if @env['PLUTO_SUPERVISOR_GENERATION'] == ENV['PLUTO_SUPERVISOR_GENERATION']
+      return !Pluto::TaskManager::Task.shutdown_self?
+    else
+      return !Pluto::TaskManager::Task.shutdown_standby?
+    end
   end
   
   def removed?
@@ -569,6 +652,51 @@ private
     tag = [@uuid, (@pid || 'none'), (@running_env || @env || {})['PLUTO_TASK_CMD']]
     tag = tag.compact.join(' - ')
     puts "[#{tag}] moved from '#{t.from}' to '#{t.to}'"
+  end
+  
+  def publish_task
+    task = {
+      'uuid' => @uuid,
+      'appl' => @env['PLUTO_APPL_NAME'],
+      'proc' => @env['PLUTO_PROC_NAME'],
+      'instance' => @env['PLUTO_PROC_INSTANCE'],
+      'state' => @state
+    }
+    Pluto::TaskManager::API::TaskSubscriber.set(task)
+  end
+  
+  def unpublish_task
+    Pluto::TaskManager::API::TaskSubscriber.rmv(@uuid)
+  end
+  
+  def publish_ports
+    return unless @ports
+    
+    @ports.each do |serv, port|
+      port = [
+        @env['PLUTO_APPL_NAME'],
+        @env['PLUTO_PROC_NAME'],
+        serv,
+        port
+      ]
+      
+      Pluto::TaskManager::API::PortSubscriber.set(port)
+    end
+  end
+  
+  def unpublish_ports
+    return unless @ports
+    
+    @ports.each do |serv, port|
+      port = [
+        @env['PLUTO_APPL_NAME'],
+        @env['PLUTO_PROC_NAME'],
+        serv,
+        port
+      ]
+      
+      Pluto::TaskManager::API::PortSubscriber.rmv(port)
+    end
   end
   
 end

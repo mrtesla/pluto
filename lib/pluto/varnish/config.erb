@@ -80,8 +80,7 @@ sub vcl_recv {
     return (pipe);
   }
 
-  if (req.http.connection == "Upgrade" &&
-      req.http.upgrade    == "WebSocket") {
+  if (req.http.upgrade ~ "(?i)websocket") {
     return (pipe);
   }
 
@@ -116,7 +115,9 @@ sub vcl_recv {
 }
 
 sub vcl_pipe {
-  set bereq.http.upgrade = req.http.upgrade;
+  if (req.http.upgrade) {
+    set bereq.http.upgrade = req.http.upgrade;
+  }
 
   # Note that only the first request to the backend will have
   # X-Forwarded-For set.  If you use X-Forwarded-For and want to

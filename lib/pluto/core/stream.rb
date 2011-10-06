@@ -1,5 +1,6 @@
-class Pluto::Stream
+class Pluto::Core::Stream
   
+  require 'yajl'
   require 'em-http-request'
   
   DEFAULT_OPTIONS = {
