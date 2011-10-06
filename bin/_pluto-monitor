@@ -1,4 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'pluto/monitor/server'
-Pluto::Monitor::Server.new.run
