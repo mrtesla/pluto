@@ -6,10 +6,11 @@ class Pluto::ApplManager::ApplDetector
   end
 
   def tick
-    uuids = Set.new(@appl_cache.appl_uuids)
-    
+    uuids   = Set.new(@appl_cache.appl_uuids)
+    changed = Pluto::ApplManager::Dashboard.shared.changed
+
     node_dir = Pathname.new('.').expand_path
-    
+
     dirs = @dir.children
     dirs.push node_dir
     dirs.each do |child|
@@ -43,27 +44,27 @@ class Pluto::ApplManager::ApplDetector
       # already have appl
       if uuids.include?(uuid)
         uuids.delete(uuid)
-        next
+        next unless changed.include?(name)
       end
-      
+
       # build the default env
       env = {
         'PWD'             => child,
         'PLUTO_APPL_NAME' => name,
         'PLUTO_APPL_UUID' => uuid
       }
-      
+
       # analyze the app
       env = Pluto::ApplManager::ApplAnalyzer.new.call(env)
       next unless env
-      
+
       # analyze the procs
       procs = Pluto::ApplManager::ProcAnalyzer.new.call(env)
-      
+
       # cache the appl and procs
       @appl_cache.store(env, procs)
     end
-    
+
     # remove the remaining uuids
     uuids.each do |uuid|
       @appl_cache.delete(uuid)

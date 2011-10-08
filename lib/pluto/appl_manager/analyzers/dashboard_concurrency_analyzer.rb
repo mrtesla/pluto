@@ -4,12 +4,12 @@ class Pluto::ApplManager::DashboardConcurrencyAnalyzer
     if env['PLUTO_APPL_NAME'] == 'pluto'
       return env
     end
-    
-    unless Pluto::Dashboard::Client.connected?
+
+    unless Pluto::ApplManager::Dashboard.connected?
       return nil
     end
 
-    dashboard = Pluto::Dashboard::Client.shared
+    dashboard = Pluto::ApplManager::Dashboard.shared
     conf      = dashboard[env['PLUTO_APPL_NAME']]
 
     unless conf

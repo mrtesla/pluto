@@ -4,10 +4,10 @@ localhost:
     environment:
       RACK_ENV: production
     concurrency:
-      web: 3
+      web: 1
     hostnames:
       - localhost
-  
+
 machine-009.mrhenry.be:
   band-it:
     environment:
