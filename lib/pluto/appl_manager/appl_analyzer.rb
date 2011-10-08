@@ -6,10 +6,11 @@ class Pluto::ApplManager::ApplAnalyzer
   require 'pluto/appl_manager/analyzers/dashboard_env_analyzer'
   require 'pluto/appl_manager/analyzers/envrc_analyzer'
   require 'pluto/appl_manager/analyzers/nvm_analyzer'
+  require 'pluto/appl_manager/analyzers/pluto_analyzer'
   require 'pluto/appl_manager/analyzers/procfile_analyzer'
   require 'pluto/appl_manager/analyzers/rvm_analyzer'
   require 'pluto/appl_manager/analyzers/uid_gid_analyzer'
-  
+
   ANALYZERS = [
     Pluto::ApplManager::BaseAnalyzer,
     Pluto::ApplManager::ProcfileAnalyzer,
@@ -18,7 +19,9 @@ class Pluto::ApplManager::ApplAnalyzer
     Pluto::ApplManager::RvmAnalyzer,
     Pluto::ApplManager::NvmAnalyzer,
     Pluto::ApplManager::EnvrcAnalyzer,
-    Pluto::ApplManager::DashboardEnvAnalyzer
+    Pluto::ApplManager::DashboardEnvAnalyzer,
+
+    Pluto::ApplManager::PlutoAnalyzer
   ]
 
   def initialize
