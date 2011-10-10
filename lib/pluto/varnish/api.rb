@@ -8,16 +8,16 @@ class Pluto::Varnish::API < Sinatra::Base
     trap('QUIT') { EM.stop }
 
     EM.run do
-      port = Pluto::Dashboard::Options.port
+      port = Pluto::Varnish::Options.port
 
       @server = Thin::Server.new('0.0.0.0', port, :signals => false)
       @server.app = self
       @server.start
 
       @disco = Pluto::Disco::Client.register(
-        Pluto::Dashboard::Options.disco,
-        Pluto::Dashboard::Options.endpoint,
-        Pluto::Dashboard::Options.node,
+        Pluto::Varnish::Options.disco,
+        Pluto::Varnish::Options.endpoint,
+        Pluto::Varnish::Options.node,
         '_varnish'
       ).start
 
@@ -63,7 +63,10 @@ class Pluto::Varnish::API < Sinatra::Base
       backends.delete(appl)
     end
 
-    vcl      = VCL.new(frontends, backends, nil).render
+    fallback = Pluto::Varnish::Options.fallback
+    fallback = fallback.split(':') if fallback
+    
+    vcl      = VCL.new(frontends, backends, fallback).render
     vcl_path = Pluto::Varnish::Options.vcl_path
     old_vcl  = ""
 
