@@ -99,7 +99,6 @@ class Pluto::ApplManager::RvmAnalyzer
     ruby_version = env['RUBY_VERSION']
 
     unless ruby_version
-      logger.warn "Ruby not found (#{ruby_version}) for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
       return
     end
     

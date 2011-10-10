@@ -57,7 +57,6 @@ class Pluto::ApplManager::NvmAnalyzer
     node_version = env['NODE_VERSION']
 
     unless node_version
-      logger.warn "Node not found (#{node_version}) for #{env['PLUTO_APPL_NAME']} (Invalid .nvmrc in #{env['root']})"
       return
     end
 

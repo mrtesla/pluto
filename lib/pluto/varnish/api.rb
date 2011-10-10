@@ -59,8 +59,9 @@ class Pluto::Varnish::API < Sinatra::Base
     end
 
     backends.each do |appl, _|
-      next unless frontends[appl].empty?
-      backends.delete(appl)
+      if frontends[appl].empty?
+        backends.delete(appl)
+      end
     end
 
     fallback = Pluto::Varnish::Options.fallback
@@ -106,7 +107,7 @@ class Pluto::Varnish::API < Sinatra::Base
     def self.subscribe
       super(
         Pluto::Varnish::Options.disco,
-        :type => '_task-manager')
+        :type => '_task-manager').start
     end
 
     def post_connect
@@ -121,11 +122,11 @@ class Pluto::Varnish::API < Sinatra::Base
       case type
 
       when 'set'
-        name = node['name']
-        @nodes[name] = PortStream.new(nodes['endpoint']).start
+        name = node['uuid']
+        @nodes[name] = PortStream.new(node['endpoint']).start
 
       when 'rmv'
-        name = node['name']
+        name = node['uuid']
         stream = @nodes.delete(name)
         stream.stop if stream
 
@@ -166,7 +167,7 @@ class Pluto::Varnish::API < Sinatra::Base
     end
 
     def each(&blk)
-      @ports/each(&blk) if @ports
+      @ports.each(&blk) if @ports
     end
 
   end
