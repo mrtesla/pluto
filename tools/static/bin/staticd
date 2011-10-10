@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Determine Script Dir
+DIR=$(dirname "$( cd -P "$( dirname "$0" )" && pwd )")
+
+function _missing_nvm()
+{
+  [ "$(type nvm 2>&1 | head -1)" == "nvm is a function" ] && return 1
+  return 0
+}
+
+# Load NVM
+_missing_nvm && [ -f "$HOME/.nvm/nvm.sh" ]     && source "$HOME/.nvm/nvm.sh"
+_missing_nvm && [ -f "/usr/local/nvm/nvm.sh" ] && source "/usr/local/nvm/nvm.sh"
+_missing_nvm && echo "Missing NVM" 1>&2 && exit 1
+
+# Use node v0.4.12
+nvm use v0.4.12 1>/dev/null 2>/dev/null
+
+[ "$(node -v)" != "v0.4.12" ] && echo "Missing node v0.4.12" 1>&2 && exit 2
+
+exec node $DIR/src/static.js $@
