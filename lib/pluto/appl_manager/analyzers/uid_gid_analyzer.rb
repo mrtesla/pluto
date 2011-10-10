@@ -8,8 +8,13 @@ class Pluto::ApplManager::UidGidAnalyzer
   def call(env)
     env['PLUTO_PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
     
-    env['USER'] ||= 'pluto'
-    u = (Etc.getpwnam(env['USER']) rescue nil)
+    if env['PLUTO_APPL_NAME'] == 'pluto'
+      env['USER'] ||= 'root'
+      u = (Etc.getpwnam(env['USER']) rescue nil)
+    else
+      env['USER'] ||= 'pluto'
+      u = (Etc.getpwnam(env['USER']) rescue nil)
+    end
     
     unless u
       env['USER'] = ENV['USER']
