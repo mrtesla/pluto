@@ -71,7 +71,7 @@ class Pluto::TaskManager::API < Sinatra::Base
     end
     
     def subscribed?(port)
-      appl, proc, serv, port = port
+      appl, proc, serv, port, order = port
       
       if v = @conditions['HTTP_X_PLUTO_IF_APPLICATION']
         return false unless v == appl

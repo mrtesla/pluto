@@ -3,7 +3,8 @@ class Pluto::ApplManager::ProcfileAnalyzer
   include Pluto::ApplManager::AnalyzerHelpers
 
   PROTECTED_ENV_VARS = %w(
-    procfile
+    PLUTO_PROCFILE
+    PLUTO_PROC_ORDER
   )
 
   def call(env)
@@ -19,6 +20,7 @@ class Pluto::ApplManager::ProcfileAnalyzer
     end
 
     # parse the procfile
+    procorder = []
     procfile = {}
     procfile_path.read.split("\n").each do |line|
       line = line.split('#', 2).first
@@ -28,6 +30,7 @@ class Pluto::ApplManager::ProcfileAnalyzer
       next if name.empty? or command.empty?
 
       procfile[name] = command
+      procorder << name
     end
 
     # verify Procfile
@@ -42,7 +45,8 @@ class Pluto::ApplManager::ProcfileAnalyzer
       return nil
     end
 
-    env['PLUTO_PROCFILE'] = procfile
+    env['PLUTO_PROCFILE']   = procfile
+    env['PLUTO_PROC_ORDER'] = procorder.join(':')
 
     return env
   end

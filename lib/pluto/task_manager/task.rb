@@ -646,7 +646,8 @@ private
         @env['PLUTO_APPL_NAME'],
         @env['PLUTO_PROC_NAME'],
         serv,
-        port
+        port,
+        @env['PLUTO_PROC_ORDER']
       ]
 
       Pluto::TaskManager::API::PortSubscriber.set(port)
@@ -661,7 +662,8 @@ private
         @env['PLUTO_APPL_NAME'],
         @env['PLUTO_PROC_NAME'],
         serv,
-        port
+        port,
+        @env['PLUTO_PROC_ORDER']
       ]
 
       Pluto::TaskManager::API::PortSubscriber.rmv(port)

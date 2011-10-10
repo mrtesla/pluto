@@ -35,9 +35,10 @@ class Pluto::Varnish::API < Sinatra::Base
     frontends = Hash.new { |h,k| h[k] = Set.new }
 
     @task_managers.each do |task_manager|
-      task_manager.each do |(appl, proc, serv, port)|
+      task_manager.each do |(appl, proc, serv, port, order)|
         appl = appl.gsub(/[^a-zA-Z0-9_]+/, '_')
-        backends[appl] << [task_manager.node, port]
+        idx  = order.split(':').index(proc)
+        backends[appl] << [task_manager.node, port, idx]
       end
     end
 
@@ -62,6 +63,16 @@ class Pluto::Varnish::API < Sinatra::Base
       if frontends[appl].empty?
         backends.delete(appl)
       end
+    end
+    
+    backends.each do |appl, ports|
+      layers = []
+      ports.each do |(node, port, idx)|
+        layers[idx] ||= []
+        layers[idx] << [node, port]
+      end
+      layers = layers.compact
+      backends[appl] = layers
     end
 
     fallback = Pluto::Varnish::Options.fallback
@@ -156,7 +167,7 @@ class Pluto::Varnish::API < Sinatra::Base
       case type
 
       when 'set'
-        appl, proc, serv, port = recd
+        appl, proc, serv, port, order = recd
         return if serv != 'http'
         @ports << recd
 
