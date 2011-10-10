@@ -1,4 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'pluto/disco/server'
-Pluto::Disco::Server.new.run
