@@ -29,6 +29,7 @@ class Pluto::ApplManager::NvmAnalyzer
   def process_nvmrc(env)
     # process .nvmrc path
     nvmrc_path = env['PWD'] + '.nvmrc'
+    node_version = nil
 
     unless nvmrc_path.file?
       # no requested ruby
