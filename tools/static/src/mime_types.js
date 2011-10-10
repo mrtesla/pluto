@@ -19,6 +19,11 @@ module.exports =
 , '.php4' : '#skip'
 , '.php3' : '#skip'
 
+, '.rb'   : '#skip'
+, '.ru'   : '#skip'
+, '.erb'  : '#skip'
+, '.rbc'  : '#skip'
+
 , ''      : '#skip'
 
 };
