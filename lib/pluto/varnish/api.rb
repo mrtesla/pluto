@@ -67,7 +67,7 @@ class Pluto::Varnish::API < Sinatra::Base
     fallback = fallback.split(':') if fallback
     
     vcl      = VCL.new(frontends, backends, fallback).render
-    vcl_path = Pluto::Varnish::Options.vcl_path
+    vcl_path = Pluto::Varnish::Options.vcl_file
     old_vcl  = ""
 
     if vcl_path.file?
