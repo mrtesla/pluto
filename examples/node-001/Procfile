@@ -3,4 +3,4 @@ appl-manager: bundle exec pluto-appl-manager -p $PORT
 disco:        bundle exec pluto-disco        -p 9000
 dashboard:    bundle exec pluto-dashboard    -p $PORT
 varnish:      bundle exec pluto-varnish      -p $PORT
-varnishd:     varnishd -a 0.0.0.0:8801 -f $PLUTO_VCL_FILE -F -s malloc -S tmp/varnish.sec
+# varnishd:     varnishd -a 0.0.0.0:8801 -f $PLUTO_VCL_FILE -F -s malloc -S tmp/varnish.sec
