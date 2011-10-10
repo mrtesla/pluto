@@ -8,6 +8,7 @@ module Pluto
   autoload :ApplManager, 'pluto/appl_manager'
   autoload :Disco,       'pluto/disco'
   autoload :Dashboard,   'pluto/dashboard'
+  autoload :Varnish,     'pluto/varnish'
 
   # require 'yaml'
   # require 'pathname'
