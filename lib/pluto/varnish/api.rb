@@ -22,11 +22,79 @@ class Pluto::Varnish::API < Sinatra::Base
       ).start
 
       @task_managers = TaskManagers.subscribe
+      @dashboard     = Dashboard.connect
 
+      EM.add_periodic_timer(1) do
+        update
+      end
     end
   end
 
   def self.update
+    backends  = Hash { |h,k| h[k] = Set.new }
+    frontends = Hash { |h,k| h[k] = Set.new }
+
+    @task_managers.each do |task_manager|
+      task_manager.each do |(appl, proc, serv, port)|
+        appl = appl.gsub(/[^a-zA-Z0-9_]+/, '_')
+        backends[appl] << [task_manager.node, port]
+      end
+    end
+
+    @dashboard.each do |appl|
+      name = appl['name']
+      name = name.gsub(/[^a-zA-Z0-9_]+/, '_')
+
+      next if backends[name].empty?
+
+      hostnames = (appl['hostnames'] || []).dup
+
+      hostnames = hostnames.map do |hostname|
+        hostname.to_s.sub(/^www\./, '')
+      end
+
+      hostnames.each do |hostname|
+        frontends[name] << hostname
+      end
+    end
+
+    backends.each do |appl, _|
+      next unless frontends[appl].empty?
+      backends.delete(appl)
+    end
+
+    vcl      = VCL.new(frontends, backends, nil).render
+    vcl_path = Pluto::Varnish::Options.vcl_path
+    old_vcl  = ""
+
+    if vcl_path.file?
+      old_vcl = vcl_path.read
+    end
+
+    if old_vcl == vcl
+      return
+    end
+
+    vcl_path.open('w+', 0644) do |f|
+      f.write vcl
+    end
+
+    Kernel.system(Pluto::Varnish::Options.vcl_reload)
+  end
+
+  class VCL
+
+    def self.template
+      @tpl ||= ERB.new(File.read(File.expand_path('../config.erb', __FILE__)))
+    end
+
+    def initialize(frontends, backends, fallback)
+      @frontends, @backends, @fallback = frontends, backends, fallback
+    end
+
+    def render
+      self.class.template.result(binding)
+    end
 
   end
 
@@ -51,7 +119,7 @@ class Pluto::Varnish::API < Sinatra::Base
 
       when 'set'
         name = node['name']
-        @nodes[name] = # Pluto::Varnish::NodeStream.new(nodes['endpoint']).start
+        @nodes[name] = PortStream.new(nodes['endpoint']).start
 
       when 'rmv'
         name = node['name']
@@ -67,6 +135,39 @@ class Pluto::Varnish::API < Sinatra::Base
 
   end
 
+  class PortStream < Pluto::Core::Stream
+
+    attr_reader :node
+
+    def initialize(endpoint)
+      @node = endpoint.split(':').first
+      super "http://#{endpoint}/stream/ports"
+    end
+
+    def post_connect
+      @ports = Set.new
+    end
+
+    def receive_event(type, recd)
+      case type
+
+      when 'set'
+        appl, proc, serv, port = recd
+        return if serv != 'http'
+        @ports << recd
+
+      when 'rmv'
+        @ports.delete(recd)
+
+      end
+    end
+
+    def each(&blk)
+      @ports/each(&blk) if @ports
+    end
+
+  end
+
   class Dashboard < Pluto::Dashboard::Client
 
     def self.connect
@@ -74,26 +175,8 @@ class Pluto::Varnish::API < Sinatra::Base
         Pluto::Varnish::Options.disco)
     end
 
-    def post_connect
-      @appls = {}
-    end
-
-    def receive_event(type, application)
-      case type
-
-      when 'set'
-        id = application['name']
-        @appls[id] = application
-
-      when 'rmv'
-        id = application['name']
-        @appls.delete(id)
-
-      end
-    end
-
     def each(&blk)
-      @appls.values.each(&blk) if @appls
+      @applications.values.each(&blk) if @applications
     end
 
   end

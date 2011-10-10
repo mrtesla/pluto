@@ -1,7 +1,7 @@
 
 <% @backends.each do |name, hosts| %>
 director <%= name %> round-robin {
-  <% hosts.each do |host, port| %>
+  <% hosts.each do |(host, port)| %>
   {
     .backend = {
       .host = "<%= host %>";
@@ -12,10 +12,12 @@ director <%= name %> round-robin {
 }
 <% end %>
 
+<% if @fallback %>
 backend fallback_host {
-  .host = "<%= @fallback_host %>";
-  .port = "<%= @fallback_port %>";
+  .host = "<%= @fallback[0] %>";
+  .port = "<%= @fallback[1] %>";
 }
+<% end %>
 
 
 acl purge {
@@ -34,16 +36,21 @@ sub vcl_recv {
   if (req.http.host ~ "^not_a_host$") {
     error 404 "Unknown virtual host";
 
-  <% @frontends.each do |domain, backend| %>
-  } elsif (req.http.host ~ "^(www.)?<%= domain %>([:]\d+)?$" &&
+  <% @frontends.each do |appl, hostnames| %>
+  <% hostnames.each do |hostname| %>
+  } elsif (req.http.host ~ "^(www.)?<%= hostname %>([:]\d+)?$" &&
            req.url ~ "^/") {
-    set req.http.host             = "<%= domain %>";
+    set req.http.host             = "<%= hostname %>";
     set req.http.X-Forward-Prefix = "/";
-    set req.backend               = <%= backend %>;
+    set req.backend               = <%= appl %>;
+  <% end %>
   <% end %>
 
+  <% if @fallback %>
   } else {
     set req.backend = fallback_host;
+  <% end %>
+
   }
 
   if (req.restarts == 0) {
@@ -88,7 +95,7 @@ sub vcl_recv {
     /* We only deal with GET and HEAD by default */
     return (pass);
   }
-  
+
   if (req.url ~ "^/lalala") {
     /* Not cacheable by default */
     return (pass);
@@ -193,7 +200,7 @@ sub vcl_fetch {
   if (req.url ~ "^/lalala") {
     return (deliver);
   }
-  
+
   if (req.url ~ "\.(css|js|gif|jpg|jpeg|bmp|png|ico|img|tga|wmf)(\?\d+)?$") {
     unset beresp.http.Set-Cookie;
     set beresp.http.Cache-Control = "max-age=31536000,public";

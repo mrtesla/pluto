@@ -1,5 +1,6 @@
 module Pluto::Varnish
 
+  require 'erb'
   require 'set'
   require 'optparse'
   require 'yaml'
