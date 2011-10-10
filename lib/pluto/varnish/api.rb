@@ -31,8 +31,8 @@ class Pluto::Varnish::API < Sinatra::Base
   end
 
   def self.update
-    backends  = Hash { |h,k| h[k] = Set.new }
-    frontends = Hash { |h,k| h[k] = Set.new }
+    backends  = Hash.new { |h,k| h[k] = Set.new }
+    frontends = Hash.new { |h,k| h[k] = Set.new }
 
     @task_managers.each do |task_manager|
       task_manager.each do |(appl, proc, serv, port)|
