@@ -26,10 +26,11 @@ var _send_file
   process.argv.forEach(function(val){
     switch (state) {
     case 0:
-      if ((val == '--port')     || (val == '-p')) { state = 1; }
-      if ((val == '--root')     || (val == '-r')) { state = 2; }
-      if ((val == '--fallback') || (val == '-f')) { state = 3; }
-      break;
+      if ((val == '--port')     || (val == '-p')) { state = 1; break; }
+      if ((val == '--root')     || (val == '-r')) { state = 2; break; }
+      if ((val == '--fallback') || (val == '-f')) { state = 3; break; }
+      console.log("Invalid argument: "+val);
+      process.exit(1);
 
     case 1:
       state = 0
@@ -47,6 +48,11 @@ var _send_file
       break;
     }
   });
+
+  if (state != 0) {
+    console.log("Expected value for last argument.");
+    process.exit(1);
+  }
 })();
 
 (function(){
