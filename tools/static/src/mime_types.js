@@ -14,6 +14,8 @@ module.exports =
 , '.jpg'  : 'image/jpeg'
 , '.jpeg' : 'image/jpeg'
 
+, '.m4v'  : 'video/mp4'
+
 , '.php'  : '#skip'
 , '.php5' : '#skip'
 , '.php4' : '#skip'

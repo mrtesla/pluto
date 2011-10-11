@@ -20,11 +20,15 @@ var _send_file
 ;
 
 (function(){
-  var state = 0
+  var state = -1
   ;
 
   process.argv.forEach(function(val){
     switch (state) {
+    case -1:
+      if (val == '--') { state = 0; }
+      break;
+      
     case 0:
       if ((val == '--port')     || (val == '-p')) { state = 1; break; }
       if ((val == '--root')     || (val == '-r')) { state = 2; break; }
@@ -49,7 +53,7 @@ var _send_file
     }
   });
 
-  if (state != 0) {
+  if (state > 0) {
     console.log("Expected value for last argument.");
     process.exit(1);
   }
@@ -67,7 +71,7 @@ var _send_file
 
     url = Url.parse(req.url);
 
-    _send_file(req, res, url.Path, $roots, $fallback);
+    _send_file(req, res, url.pathname, $roots, $fallback);
   });
 
   $server.listen($port);

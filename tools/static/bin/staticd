@@ -19,4 +19,4 @@ nvm use v0.4.12 1>/dev/null 2>/dev/null
 
 [ "$(node -v)" != "v0.4.12" ] && echo "Missing node v0.4.12" 1>&2 && exit 2
 
-exec node $DIR/src/static.js $@
+exec node $DIR/src/static.js -- $@
