@@ -9,6 +9,11 @@ class Pluto::ApplManager::RvmAnalyzer
     ].detect(&:directory?)
   end
 
+  p [:ok, [
+      Pathname.new('/usr/local/rvm'),
+      Pathname.new('~/.rvm').expand_path
+    ]]
+
   RVM_RUNTIMES = %w( ruby rbx ree )
   RVM_VERSIONS = {
     'ruby' => ['1.8.7', '1.9.2'],
@@ -17,7 +22,7 @@ class Pluto::ApplManager::RvmAnalyzer
   }
   RVM_PATCHES = {
     'ruby-1.8.7' => ['p352'],
-    'ruby-1.9.2' => ['p290', 'p180'],
+    'ruby-1.9.2' => ['p290'],
     'ree-1.8.7'  => ['2011.03']
   }
 
@@ -28,12 +33,12 @@ class Pluto::ApplManager::RvmAnalyzer
 
   def call(env)
     env['PLUTO_PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
-    
+
     return env unless RVM_PATH
-    
+
     process_rvmrc(env)
     apply_rvm_env(env)
-    
+
     return env
   end
 
@@ -57,7 +62,7 @@ class Pluto::ApplManager::RvmAnalyzer
       next unless /^[a-z0-9_.-]+$/ =~ line
       ruby_version = line
     end
-    
+
     unless ruby_version
       return
     end
@@ -101,7 +106,7 @@ class Pluto::ApplManager::RvmAnalyzer
     unless ruby_version
       return
     end
-    
+
     unless (RVM_PATH + 'rubies' + ruby_version + 'bin').directory?
       logger.warn "Ruby not found (#{ruby_version}) for #{env['PLUTO_APPL_NAME']} (Invalid .rvmrc in #{env['PWD']})"
       return

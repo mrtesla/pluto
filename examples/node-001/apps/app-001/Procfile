@@ -1,2 +1,3 @@
 # web: sleep 60 ; echo $PORT_HTTP
-web: bundle exec thin -R config.ru -p $PORT start
+static: staticd -p $PORT --root public
+web:    bundle exec thin -R config.ru -p $PORT start

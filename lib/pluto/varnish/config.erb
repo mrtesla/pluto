@@ -1,15 +1,17 @@
 
-<% @backends.each do |name, hosts| %>
-director <%= name %> round-robin {
+<% @backends.each do |name, levels| %>
+<% levels.each_with_index do |hosts, level| %>
+director <%= name %>__<%= level %> round-robin {
   <% hosts.each do |(host, port)| %>
   {
     .backend = {
-      .host = "<%= host %>";
+      .host = "<%= (host == 'localhost' ? '127.0.0.1' : host) %>";
       .port = "<%= port %>";
     }
   }
   <% end %>
 }
+<% end %>
 <% end %>
 
 <% if @fallback %>
@@ -42,7 +44,28 @@ sub vcl_recv {
            req.url ~ "^/") {
     set req.http.host             = "<%= hostname %>";
     set req.http.X-Forward-Prefix = "/";
-    set req.backend               = <%= appl %>;
+
+    if (req.restarts == 0) {
+      set req.http.X-Pluto-Cascade = "0";
+      set req.http.X-Pluto-Max-Cascade = "<%= @backends[appl].size - 1 %>";
+    }
+
+    if (req.http.X-Pluto-Pass) {
+      remove req.http.X-Pluto-Pass;
+      if (req.http.X-Pluto-Cascade == "none") {
+      <% @backends[appl].each_with_index do |_, level| %>
+      } elsif (req.http.X-Pluto-Cascade == "<%= level %>") {
+        set req.http.X-Pluto-Cascade = "<%= level + 1 %>";
+      <% end %>
+      }
+    }
+
+    if (req.http.X-Pluto-Cascade == "none") {
+    <% @backends[appl].each_with_index do |_, level| %>
+    } elsif (req.http.X-Pluto-Cascade == "<%= level %>") {
+      set req.backend = <%= appl %>__<%= level %>;
+    <% end %>
+    }
   <% end %>
   <% end %>
 
@@ -179,6 +202,11 @@ sub vcl_miss {
 }
 
 sub vcl_fetch {
+  if ((beresp.status == 404) && (req.http.X-Pluto-Cascade != req.http.X-Pluto-Max-Cascade)) {
+    set req.http.X-Pluto-Pass = "true";
+    return (restart);
+  }
+
   unset beresp.http.Server;
   set beresp.http.Server = "Mr. Server";
 

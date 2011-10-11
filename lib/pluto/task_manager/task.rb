@@ -624,6 +624,8 @@ private
   end
 
   def publish_task
+    return unless @env
+
     task = {
       'uuid' => @uuid,
       'appl' => @env['PLUTO_APPL_NAME'],
@@ -639,6 +641,7 @@ private
   end
 
   def publish_ports
+    return unless @env
     return unless @ports
 
     @ports.each do |serv, port|

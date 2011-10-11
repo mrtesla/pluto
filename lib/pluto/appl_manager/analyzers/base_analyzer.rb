@@ -4,7 +4,7 @@ class Pluto::ApplManager::BaseAnalyzer
 
   PROTECTED_ENV_VARS = %w(
     PATH PWD HOME
-    
+
     PLUTO_APPL_NAME
     PLUTO_APPL_UUID
     PLUTO_HIDDEN_ENV_VARS
@@ -34,8 +34,13 @@ class Pluto::ApplManager::BaseAnalyzer
       /usr/local/sbin
       /usr/sbin
       /sbin
-    ).join(':')
+    )
 
+    bins = File.expand_path('../../../../../tools/*/bin', __FILE__)
+    bins = Dir.glob(bins)
+    env['PATH'] = [bins, env['PATH']].flatten
+
+    env['PATH'] = env['PATH'].join(':')
     env['PLUTO_CONCURRENCY'] = {}
 
     return env
