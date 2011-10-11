@@ -202,9 +202,11 @@ sub vcl_miss {
 }
 
 sub vcl_fetch {
-  if ((beresp.status == 404) && (req.http.X-Pluto-Cascade != req.http.X-Pluto-Max-Cascade)) {
-    set req.http.X-Pluto-Pass = "true";
-    return (restart);
+  if (req.http.X-Pluto-Max-Cascade){
+    if ((beresp.status == 404) && (req.http.X-Pluto-Cascade != req.http.X-Pluto-Max-Cascade)) {
+      set req.http.X-Pluto-Pass = "true";
+      return (restart);
+    }
   }
 
   unset beresp.http.Server;
