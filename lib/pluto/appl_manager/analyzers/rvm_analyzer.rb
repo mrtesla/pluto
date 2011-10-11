@@ -9,11 +9,6 @@ class Pluto::ApplManager::RvmAnalyzer
     ].detect(&:directory?)
   end
 
-  p [:ok, [
-      Pathname.new('/usr/local/rvm'),
-      Pathname.new('~/.rvm').expand_path
-    ]]
-
   RVM_RUNTIMES = %w( ruby rbx ree )
   RVM_VERSIONS = {
     'ruby' => ['1.8.7', '1.9.2'],
