@@ -137,7 +137,7 @@ _pipe_file = function(req, res, paths){
     res.writeHead(200,
     { 'Content-Type'   : mime
     , 'Content-Length' : stat.size
-    , 'ETag'           : etag
+    , 'ETag'           : '"'+etag+'"'
     });
 
     stream = Fs.createReadStream(path);
