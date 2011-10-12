@@ -16,9 +16,6 @@ module Pluto
   # 
   # require 'lumberjack'
   # require 'lumberjack_syslog_device'
-  # require 'statsd'
-  # 
-  # 
   # 
   # autoload :Stream,        'pluto/core/stream'
   # autoload :Configuration, 'pluto/core/configuration'
@@ -36,14 +33,21 @@ module Pluto
   # def self.config
   #   @configuration ||= Pluto::Configuration.load(root)
   # end
-  # 
-  # def self.stats
-  #   @stats ||= Statsd.new(*config.statsd_host)
-  # end
-  # 
-  # def self.stats?
-  #   !!config.pluto['statsd']
-  # end
+  
+  def self.stats
+    return nil unless stats?
+    @stats ||= begin
+      require 'statsd'
+      hostport = ENV['PLUTO_STATSD_HOST'].split(':', 2)
+      hostname = hostport[0]
+      portname = (hostport[1] || 8125).to_i
+      Statsd.new(hostname, portname)
+    end
+  end
+  
+  def self.stats?
+    !!ENV['PLUTO_STATSD_HOST']
+  end
 
   def self.logger
     @logger ||= begin

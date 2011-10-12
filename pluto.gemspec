@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  # s.add_runtime_dependency 'statsd-ruby'
 
   # s.add_runtime_dependency 'cramp'
   # s.add_runtime_dependency 'thin'
@@ -36,5 +35,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'state_machine'
   s.add_runtime_dependency 'yajl-ruby'
   s.add_runtime_dependency 'thor'
+  s.add_runtime_dependency 'statsd-ruby'
   
 end

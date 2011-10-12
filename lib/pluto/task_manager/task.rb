@@ -169,12 +169,48 @@ class Pluto::TaskManager::Task
     @tasks.each do |uuid, task|
       task.tick(now)
     end
+    
+    deliver_stats
 
     true
   end
 
   def self.all
     @tasks.values
+  end
+
+  def self.deliver_stats
+    return unless Pluto.stats?
+    
+    aggregates = {}
+    
+    all.each do |task|
+      sample = task.sample or next
+      env    = task.env    or next
+      ns     = [env['PLUTO_APPL_NAME'], env['PLUTO_PROC_NAME']].join('.')
+      
+      aggregate = aggregates[ns]
+      unless aggregate
+        aggregate = {
+          'mem.rss' => 0,
+          'mem.vsz' => 0,
+          'cpu'     => 0
+        }
+        aggregates[ns] = aggregate
+      end
+      
+      aggregate['cpu']     += sample[6]
+      aggregate['mem.rss'] += sample[7]
+      aggregate['mem.vsz'] += sample[8]
+    end
+    
+    node = Pluto::TaskManager::Options.node.gsub('.', '_')
+    
+    aggregates.each do |ns, stats|
+      stats.each do |stat, count|
+        Pluto.stats.count("pluto.#{node}.#{ns}.#{stat}", count)
+      end
+    end
   end
 
   def self.boot_supervisor
@@ -314,7 +350,7 @@ class Pluto::TaskManager::Task
 
 
   attr_writer :enabled
-  attr_reader :pid, :env
+  attr_reader :pid, :env, :sample
 
 
   def enabled?
