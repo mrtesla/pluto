@@ -46,7 +46,11 @@ sub vcl_recv {
     set req.http.X-Forward-Prefix = "/";
 
     if (req.restarts == 0) {
-      set req.http.X-Pluto-Cascade = "0";
+      if (req.request == "GET" || req.request == "HEAD") {
+        set req.http.X-Pluto-Cascade = "0";
+      } else { # skip secondary backends for Non GET/HEAD requests
+        set req.http.X-Pluto-Cascade = "<%= @backends[appl].size - 1 %>";
+      }
       set req.http.X-Pluto-Max-Cascade = "<%= @backends[appl].size - 1 %>";
     }
 
