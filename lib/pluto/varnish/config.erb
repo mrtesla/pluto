@@ -131,7 +131,10 @@ sub vcl_recv {
   if (req.http.Cookie) {
     set req.http.Cookie = regsuball(req.http.Cookie, "__utm.=[^;]+(; )?", "");
     if (req.http.Cookie ~ "^ *$") {
-        remove req.http.Cookie;
+      remove req.http.Cookie;
+    }
+    if (req.url ~ "^/_fragments") {
+      remove req.http.Cookie;
     }
   }
 
