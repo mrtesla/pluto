@@ -44,6 +44,7 @@ sub vcl_recv {
            req.url ~ "^/") {
     set req.http.host             = "<%= hostname %>";
     set req.http.X-Forward-Prefix = "/";
+    set req.http.X-Pluto-Application = "<%= appl %>";
 
     if (req.restarts == 0) {
       if (req.request == "GET" || req.request == "HEAD") {
@@ -114,12 +115,12 @@ sub vcl_recv {
     return (pipe);
   }
 
-  // pipe SSE
+  # pipe SSE
   if (req.http.Accept == "text/event-stream") {
     return (pipe);
   }
 
-  // pipe WS
+  # pipe WS
   if (req.http.upgrade ~ "(?i)websocket") {
     return (pipe);
   }
@@ -224,6 +225,12 @@ sub vcl_fetch {
 
   unset beresp.http.Server;
   set beresp.http.Server = "Mr. Server";
+  
+  if (req.http.X-Pluto-Application) {
+    set beresp.http.X-Pluto-Application = req.http.X-Pluto-Application;
+  } else {
+    set beresp.http.X-Pluto-Application = "_other";
+  }
 
   if (beresp.http.Content-Type ~ "^text\/" ||
       beresp.http.Content-Type ~ "^application\/json" ||
@@ -248,9 +255,9 @@ sub vcl_fetch {
     unset beresp.http.Set-Cookie;
     set beresp.http.Cache-Control = "max-age=31536000,public";
 
-    if (beresp.ttl < 3600s) {
-      set beresp.ttl = 3600s;
-    }
+    # if (beresp.ttl < 3600s) {
+      set beresp.ttl = 600s;
+    # }
   }
 
   if (beresp.ttl <= 0s ||
