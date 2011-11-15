@@ -114,6 +114,12 @@ sub vcl_recv {
     return (pipe);
   }
 
+  // pipe SSE
+  if (req.http.Accept == "text/event-stream") {
+    return (pipe);
+  }
+
+  // pipe WS
   if (req.http.upgrade ~ "(?i)websocket") {
     return (pipe);
   }
