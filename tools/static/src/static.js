@@ -140,14 +140,18 @@ _pipe_file = function(req, res, paths){
     , 'ETag'           : '"'+etag+'"'
     });
 
-    stream = Fs.createReadStream(path);
-
-    stream.pipe(res);
-
-    stream.on('error', function(err){
-      console.log(err);
-      res.end();
-    });
+    if (req.method == 'HEAD') {
+      req.end();
+    } else {
+      stream = Fs.createReadStream(path);
+      
+      stream.pipe(res);
+      
+      stream.on('error', function(err){
+        console.log(err);
+        res.end();
+      });
+    }
   });
 };
 
