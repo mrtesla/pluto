@@ -76,6 +76,7 @@ sub vcl_recv {
 
   <% if @fallback %>
   } else {
+    set req.http.X-Pluto-Application = "_other";
     set req.backend = fallback_host;
   <% end %>
 
@@ -131,6 +132,11 @@ sub vcl_recv {
   }
 
   if (req.url ~ "^/lalala") {
+    /* Not cacheable by default */
+    return (pass);
+  }
+
+  if (req.http.X-Pluto-Application == "_other") {
     /* Not cacheable by default */
     return (pass);
   }
