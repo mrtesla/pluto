@@ -215,6 +215,13 @@ class Pluto::TaskManager::Task
 
   def self.boot_supervisor
     return unless @supervisor
+    
+    lock_file = Pluto::TaskManager::Options.lock_file
+    if locked_file?(lock_file)
+      lock_file.open('r') do |f|
+        f.flock(File::LOCK_EX)
+      end
+    end
 
     uuid = @supervisor['PLUTO_TASK_UUID']
 
@@ -223,6 +230,9 @@ class Pluto::TaskManager::Task
     task_file.open('w+', 0640) do |f|
       f.write Yajl::Encoder.encode(@supervisor)
     end
+    
+    stat_file = Pluto::TaskManager::Options.data_dir + (uuid + '.stat')
+    stat_file.unlink rescue nil
 
     task = new(uuid).load
 
@@ -354,6 +364,8 @@ class Pluto::TaskManager::Task
 
 
   def enabled?
+    return false unless @env
+      
     unless @env['PLUTO_APPL_NAME'] == 'pluto'
       if Pluto::TaskManager::Task.shutdown?
         return false
@@ -416,6 +428,19 @@ private
   def proc_file
     @proc_file ||= Pluto::TaskManager::Options.data_dir + (@uuid + '.proc')
   end
+  
+  def max_rss
+    @max_rss ||= (ENV['PLUTO_RSS_MAX'] || '250').to_i
+  end
+  
+  def max_restarts
+    @max_restarts ||= begin
+      restarts, window = *(ENV['PLUTO_RESTART_MAX'] || '3:600').split(':', 2)
+      restarts = restarts.to_i
+      window   = (window || '600').to_i
+      [restarts, window]
+    end
+  end
 
 
   def proc_file_locked?
@@ -423,13 +448,18 @@ private
   end
 
   def too_many_restarts?
-    (@exits.size >= 3) and (@exits.first >= (@now - 600))
+    if @env['PLUTO_APPL_NAME'] == 'pluto'
+      false
+    else
+      restarts, window = *max_restarts
+      (@exits.size >= restarts) and (@exits.first >= (@now - window))
+    end
   end
 
   def well_behaved?
     return true unless @sample
 
-    if @sample[7] >= (250 * 1024 * 1024) # rss
+    if @sample[7] >= (max_rss * 1024 * 1024) # rss
       return false
     end
 
@@ -468,7 +498,11 @@ private
   end
 
   def set_grace_timer
-    @grace_timer = (@now + 30) # 30 seconds
+    if @env['PLUTO_APPL_NAME'] == 'pluto'
+      @grace_timer = @now
+    else
+      @grace_timer = (@now + 5) # 5 seconds
+    end
   end
 
   def unset_grace_timer

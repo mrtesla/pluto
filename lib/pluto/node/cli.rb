@@ -52,6 +52,8 @@ class Pluto::Node::CLI < Thor
     Pluto::TaskManager::Options.parse!([])
     Pluto::TaskManager::Task.supervisor = task_manager
     Pluto::TaskManager::Task.boot_supervisor
+    
+    say_status('INFO', "Node is booting")
   end
 
   desc "stop", "Stop the Pluto task manager."
@@ -80,13 +82,20 @@ class Pluto::Node::CLI < Thor
 
     info = Yajl::Parser.parse(proc.read)
     Process.kill('QUIT', info['pid'].to_i) rescue nil
+    
+    if Pluto::TaskManager::Task.locked_file?(lock)
+      lock.open('r') do |f|
+        f.flock(File::LOCK_EX)
+      end
+    end
+    
+    say_status('INFO', "Node is down")
   end
 
   desc "restart", "Restart the Pluto task manager."
   def restart
-    root = Pathname.new(options[:root]).expand_path
-    # Pluto::TaskManager::Task.data_dir = root + "tmp/tasks"
-
+    stop
+    start
   end
 
 end
