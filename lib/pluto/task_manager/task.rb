@@ -531,13 +531,6 @@ private
     tmp_pid = Process.fork do
       Process.setsid
 
-      if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] != 'root'
-        Process.gid  = Etc.getpwnam(env['USER']).gid
-        Process.egid = Etc.getpwnam(env['USER']).gid
-        Process.uid  = Etc.getpwnam(env['USER']).uid
-        Process.euid = Etc.getpwnam(env['USER']).uid
-      end
-
       pid = Process.fork do
         proc_file.dirname.mkpath
 
@@ -553,6 +546,13 @@ private
         f.close_on_exec = false
         f.autoclose     = false
         f.flock(File::LOCK_EX)
+        
+        if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] != 'root'
+          Process.gid  = Etc.getpwnam(env['USER']).gid
+          Process.egid = Etc.getpwnam(env['USER']).gid
+          Process.uid  = Etc.getpwnam(env['USER']).uid
+          Process.euid = Etc.getpwnam(env['USER']).uid
+        end
 
         pp_w.puts Process.pid
 
