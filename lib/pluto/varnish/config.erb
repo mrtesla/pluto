@@ -231,7 +231,7 @@ sub vcl_fetch {
 
   unset beresp.http.Server;
   set beresp.http.Server = "Mr. Server";
-  
+
   if (req.http.X-Pluto-Application) {
     set beresp.http.X-Pluto-Application = req.http.X-Pluto-Application;
   } else {

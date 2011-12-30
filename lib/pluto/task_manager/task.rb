@@ -169,7 +169,7 @@ class Pluto::TaskManager::Task
     @tasks.each do |uuid, task|
       task.tick(now)
     end
-    
+
     deliver_stats
 
     true
@@ -181,14 +181,14 @@ class Pluto::TaskManager::Task
 
   def self.deliver_stats
     return unless Pluto.stats?
-    
+
     aggregates = {}
-    
+
     all.each do |task|
       sample = task.sample or next
       env    = task.env    or next
       ns     = [env['PLUTO_APPL_NAME'], env['PLUTO_PROC_NAME']].join('.')
-      
+
       aggregate = aggregates[ns]
       unless aggregate
         aggregate = {
@@ -198,14 +198,14 @@ class Pluto::TaskManager::Task
         }
         aggregates[ns] = aggregate
       end
-      
+
       aggregate['cpu']     += sample[6]
       aggregate['mem.rss'] += sample[7]
       aggregate['mem.vsz'] += sample[8]
     end
-    
+
     node = Pluto::TaskManager::Options.node.gsub('.', '_')
-    
+
     aggregates.each do |ns, stats|
       stats.each do |stat, count|
         Pluto.stats.count("pluto.#{node}.#{ns}.#{stat}", count)
@@ -215,7 +215,7 @@ class Pluto::TaskManager::Task
 
   def self.boot_supervisor
     return unless @supervisor
-    
+
     lock_file = Pluto::TaskManager::Options.lock_file
     if locked_file?(lock_file)
       lock_file.open('r') do |f|
@@ -230,7 +230,7 @@ class Pluto::TaskManager::Task
     task_file.open('w+', 0640) do |f|
       f.write Yajl::Encoder.encode(@supervisor)
     end
-    
+
     stat_file = Pluto::TaskManager::Options.data_dir + (uuid + '.stat')
     stat_file.unlink rescue nil
 
@@ -365,7 +365,7 @@ class Pluto::TaskManager::Task
 
   def enabled?
     return false unless @env
-      
+
     unless @env['PLUTO_APPL_NAME'] == 'pluto'
       if Pluto::TaskManager::Task.shutdown?
         return false
@@ -428,11 +428,11 @@ private
   def proc_file
     @proc_file ||= Pluto::TaskManager::Options.data_dir + (@uuid + '.proc')
   end
-  
+
   def max_rss
     @max_rss ||= (ENV['PLUTO_RSS_MAX'] || '250').to_i
   end
-  
+
   def max_restarts
     @max_restarts ||= begin
       restarts, window = *(ENV['PLUTO_RESTART_MAX'] || '3:600').split(':', 2)
@@ -453,7 +453,7 @@ private
     else
       restarts, window = *max_restarts
       (@exits.size >= restarts) and (@exits.first >= (@now - window))
-    end
+  end
   end
 
   def well_behaved?
@@ -502,7 +502,7 @@ private
       @grace_timer = @now
     else
       @grace_timer = (@now + 5) # 5 seconds
-    end
+  end
   end
 
   def unset_grace_timer
@@ -546,7 +546,7 @@ private
         f.close_on_exec = false
         f.autoclose     = false
         f.flock(File::LOCK_EX)
-        
+
         if Etc.getpwuid(Process.uid).name == 'root' and env['USER'] != 'root'
           Process.gid  = Etc.getpwnam(env['USER']).gid
           Process.egid = Etc.getpwnam(env['USER']).gid
@@ -720,7 +720,8 @@ private
         @env['PLUTO_PROC_NAME'],
         serv,
         port,
-        @env['PLUTO_PROC_ORDER']
+        @env['PLUTO_PROC_ORDER'],
+        @env['PLUTO_PROC_INSTANCE']
       ]
 
       Pluto::TaskManager::API::PortSubscriber.set(port)
@@ -728,6 +729,7 @@ private
   end
 
   def unpublish_ports
+    return unless @env
     return unless @ports
 
     @ports.each do |serv, port|

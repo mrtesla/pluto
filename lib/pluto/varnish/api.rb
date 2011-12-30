@@ -64,7 +64,7 @@ class Pluto::Varnish::API < Sinatra::Base
         backends.delete(appl)
       end
     end
-    
+
     backends.each do |appl, ports|
       layers = []
       ports.each do |(node, port, idx)|
@@ -77,7 +77,7 @@ class Pluto::Varnish::API < Sinatra::Base
 
     fallback = Pluto::Varnish::Options.fallback
     fallback = fallback.split(':') if fallback
-    
+
     vcl      = VCL.new(frontends, backends, fallback).render
     vcl_path = Pluto::Varnish::Options.vcl_file
     old_vcl  = ""
