@@ -498,7 +498,7 @@ private
   end
 
   def set_grace_timer
-    if @env['PLUTO_APPL_NAME'] == 'pluto'
+    if @env and @env['PLUTO_APPL_NAME'] == 'pluto'
       @grace_timer = @now
     else
       @grace_timer = (@now + 5) # 5 seconds
