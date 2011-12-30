@@ -9,7 +9,7 @@ class Pluto::ApplManager::NvmAnalyzer
     ].detect(&:directory?)
   end
 
-  NVM_VERSIONS = ['v0.2.6', 'v0.4.9', 'v0.4.12']
+  NVM_VERSIONS = ['v0.2.6', 'v0.4.9', 'v0.4.12', 'v0.6.6']
 
   PROTECTED_ENV_VARS = %w(
     NODE_VERSION
