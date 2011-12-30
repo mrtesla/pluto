@@ -61,6 +61,7 @@ class Pluto::TaskManager::API < Sinatra::Base
       backends = backends.map do |(application, process, serv, port, _, instance)|
         next unless serv == 'http'
         {
+          type:        'backend',
           machine:     machine,
           application: application,
           process:     process,
