@@ -24,7 +24,7 @@ class Pluto::Varnish::API < Sinatra::Base
       @task_managers = TaskManagers.subscribe
       @dashboard     = Dashboard.connect
 
-      EM.add_periodic_timer(1) do
+      EM.add_periodic_timer(5) do
         update
       end
     end
@@ -47,6 +47,7 @@ class Pluto::Varnish::API < Sinatra::Base
       name = name.gsub(/[^a-zA-Z0-9_]+/, '_')
 
       if appl['alice']
+        backends[name] = Set.new
         backends[name] << ['127.0.0.1', 4001, 0]
         backends[name] << ['127.0.0.1', 4002, 0]
         backends[name] << ['127.0.0.1', 4003, 0]
