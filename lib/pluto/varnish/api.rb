@@ -46,6 +46,13 @@ class Pluto::Varnish::API < Sinatra::Base
       name = appl['name']
       name = name.gsub(/[^a-zA-Z0-9_]+/, '_')
 
+      if appl['alice']
+        backends[name] << ['127.0.0.1', 4001, 0]
+        backends[name] << ['127.0.0.1', 4002, 0]
+        backends[name] << ['127.0.0.1', 4003, 0]
+        backends[name] << ['127.0.0.1', 4004, 0]
+      end
+
       next if backends[name].empty?
 
       hostnames = (appl['hostnames'] || []).dup
