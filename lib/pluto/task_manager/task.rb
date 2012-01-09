@@ -738,7 +738,8 @@ private
         @env['PLUTO_PROC_NAME'],
         serv,
         port,
-        @env['PLUTO_PROC_ORDER']
+        @env['PLUTO_PROC_ORDER'],
+        @env['PLUTO_PROC_INSTANCE']
       ]
 
       Pluto::TaskManager::API::PortSubscriber.rmv(port)

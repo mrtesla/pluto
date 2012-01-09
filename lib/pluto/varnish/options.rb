@@ -44,6 +44,8 @@ module Pluto::Varnish::Options
 
     end.parse!(argv)
 
+    @fallback = @fallback.split(' ')
+
   end
 
   class << self

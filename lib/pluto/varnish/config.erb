@@ -14,10 +14,23 @@ director <%= name %>__<%= level %> round-robin {
 <% end %>
 <% end %>
 
-<% if @fallback %>
-backend fallback_host {
-  .host = "<%= @fallback[0] %>";
-  .port = "<%= @fallback[1] %>";
+<% if @fallback and @fallback.size > 0 %>
+director fallback_host round-robin {
+  <% @fallback.each do |(host, port)| %>
+  {
+    .backend = {
+      .host = "<%= host %>";
+      .port = "<%= port %>";
+      .probe = {
+        .url       = "/_alice/probe/router";
+        .timeout   = 50ms;
+        .interval  = 1s;
+        .window    = 10;
+        .threshold = 8;
+      }
+    }
+  }
+  <% end %>
 }
 <% end %>
 

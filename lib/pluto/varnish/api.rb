@@ -84,7 +84,11 @@ class Pluto::Varnish::API < Sinatra::Base
     end
 
     fallback = Pluto::Varnish::Options.fallback
-    fallback = fallback.split(':') if fallback
+    if fallback
+      fallback = fallback.map do |f|
+        f.split(':')
+      end
+    end
 
     vcl      = VCL.new(frontends, backends, fallback).render
     vcl_path = Pluto::Varnish::Options.vcl_file
