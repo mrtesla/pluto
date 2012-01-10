@@ -83,9 +83,6 @@ class Pluto::TaskManager::Task
     after_transition  :running     => :stopping,    :do => :unpublish_ports
     after_transition  :running     => :terminating, :do => :unpublish_ports
 
-    after_transition  any          => any,          :do => :publish_task
-    after_transition  any          => :removed,     :do => :unpublish_task
-
     after_transition  do |task, transition|
       task.send(:log, transition)
     end
@@ -273,13 +270,6 @@ class Pluto::TaskManager::Task
     EM.run do
       EM.add_periodic_timer(1) { Pluto::TaskManager::Task.tick }
       Pluto::TaskManager::API.run
-
-      @disco = Pluto::Disco::Client.register(
-        Pluto::TaskManager::Options.disco,
-        Pluto::TaskManager::Options.endpoint,
-        Pluto::TaskManager::Options.node,
-        '_task-manager'
-      ).start
     end
   end
 
@@ -348,7 +338,6 @@ class Pluto::TaskManager::Task
 
     if @state
       publish_ports if @state == 'running'
-      publish_task
     end
 
     if @env
@@ -693,23 +682,6 @@ private
     puts "[#{tag}] moved from '#{t.from}' to '#{t.to}'"
   end
 
-  def publish_task
-    return unless @env
-
-    task = {
-      'uuid' => @uuid,
-      'appl' => @env['PLUTO_APPL_NAME'],
-      'proc' => @env['PLUTO_PROC_NAME'],
-      'instance' => @env['PLUTO_PROC_INSTANCE'],
-      'state' => @state
-    }
-    Pluto::TaskManager::API::TaskSubscriber.set(task)
-  end
-
-  def unpublish_task
-    Pluto::TaskManager::API::TaskSubscriber.rmv(@uuid)
-  end
-
   def publish_ports
     return unless @env
     return unless @ports
@@ -720,7 +692,6 @@ private
         @env['PLUTO_PROC_NAME'],
         serv,
         port,
-        @env['PLUTO_PROC_ORDER'],
         @env['PLUTO_PROC_INSTANCE']
       ]
 
@@ -738,7 +709,6 @@ private
         @env['PLUTO_PROC_NAME'],
         serv,
         port,
-        @env['PLUTO_PROC_ORDER'],
         @env['PLUTO_PROC_INSTANCE']
       ]
 

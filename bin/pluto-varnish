@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'pluto'
-
-Pluto::Varnish::Options.parse!
-Pluto::Varnish::API.run
