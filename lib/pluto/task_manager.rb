@@ -9,6 +9,7 @@ module Pluto::TaskManager
   require 'state_machine'
   require 'eventmachine'
   require 'socket'
+  require 'em-http-request'
 
   require 'pluto/task_manager/options'
   require 'pluto/task_manager/api'
