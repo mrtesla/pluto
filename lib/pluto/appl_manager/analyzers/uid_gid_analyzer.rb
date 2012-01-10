@@ -9,6 +9,7 @@ class Pluto::ApplManager::UidGidAnalyzer
     env['PLUTO_PROTECTED_ENV_VARS'].concat(PROTECTED_ENV_VARS)
 
     blessed = Pluto::ApplManager::Options.blessed_apps.include?(env['PLUTO_APPL_NAME'])
+    blessed = true if env['PLUTO_APPL_NAME'] == 'pluto'
 
     if blessed
       env['USER'] ||= ENV['USER']
