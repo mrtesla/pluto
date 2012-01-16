@@ -1,4 +1,0 @@
-task-manager: bundle exec pluto-task-manager
-appl-manager: bundle exec pluto-appl-manager
-disco:        bundle exec pluto-disco        -p 9000
-dashboard:    bundle exec pluto-dashboard    -p $PORT

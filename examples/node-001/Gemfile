@@ -1,3 +1,0 @@
-source "http://rubygems.org"
-
-gem 'pluto', :path => File.expand_path('../../..', __FILE__)

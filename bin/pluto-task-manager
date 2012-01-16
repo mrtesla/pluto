@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'pluto'
-
-Pluto::TaskManager::Options.parse!
-Pluto::TaskManager::Task.run_supervisor
