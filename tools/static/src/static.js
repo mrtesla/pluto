@@ -28,7 +28,7 @@ var _send_file
     case -1:
       if (val == '--') { state = 0; }
       break;
-      
+
     case 0:
       if ((val == '--port')     || (val == '-p')) { state = 1; break; }
       if ((val == '--root')     || (val == '-r')) { state = 2; break; }
@@ -71,7 +71,7 @@ var _send_file
 
     url = Url.parse(req.url);
 
-    _send_file(req, res, url.pathname, $roots, $fallback);
+    _send_file(req, res, decodeURIComponent(url.pathname), $roots, $fallback);
   });
 
   $server.listen($port);
@@ -144,9 +144,9 @@ _pipe_file = function(req, res, paths){
       req.end();
     } else {
       stream = Fs.createReadStream(path);
-      
+
       stream.pipe(res);
-      
+
       stream.on('error', function(err){
         console.log(err);
         res.end();
