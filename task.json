@@ -1,0 +1,17 @@
+{
+  "pluto_root": "/var/u",
+  "pluto_node_version": "v0.6.6",
+  "pluto_logger": { "host": "127.0.0.1", "port": "514" },
+
+  "task": "client_example:web:1",
+  "user": "pluto",
+  "root": "/var/u/apps/client_example",
+  "command": "bundle exec rails server thin -p $PORT",
+  "ports": [
+    { "name": "PORT" }
+  ],
+  "env": [
+    { "name": "RAILS_ENV", "value": "production" },
+    { "name": "RACK_ENV", "value": "production" }
+  ]
+}
