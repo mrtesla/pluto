@@ -30,6 +30,7 @@ mkdir -p                  \
   $PREFIX/services        \
   $PREFIX/script          \
   $PREFIX/script/generate \
+  $PREFIX/script/destroy  \
   $PREFIX/script/hooks    \
   $PREFIX/script/utils
 
@@ -58,6 +59,8 @@ ln -s ../node_modules/pluto/script/run.sh         script/status
 
 ln -s ../../node_modules/pluto/script/generate.sh script/generate/task
 ln -s ../../node_modules/pluto/script/generate.sh script/generate/service
+
+ln -s ../../node_modules/pluto/script/destroy.sh  script/destroy/service
 
 ln -s ../../node_modules/pluto/script/utils.sh    script/utils/get-port
 

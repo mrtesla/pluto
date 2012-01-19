@@ -40,6 +40,11 @@ nconf.defaults(
     , 'port'     : 514
     }
 
+  , 'hooks':
+    { 'starting'   : []
+    , 'terminated' : []
+    }
+
 });
 
 module.exports = nconf;
