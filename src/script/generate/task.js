@@ -1,5 +1,5 @@
 var Optimist = require('optimist')
-,   Config   = require('../config')
+,   Config   = require('../../config')
 ;
 
 var task

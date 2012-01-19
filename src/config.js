@@ -4,8 +4,9 @@ var nconf = require('nconf')
 
 nconf.overrides(
   { 'pluto' :
-    { 'dir'    : process.cwd()
-    , 'prefix' : Fs.realpathSync(__dirname + '/..')
+    { 'dir'          : process.cwd()
+    , 'prefix'       : Fs.realpathSync(__dirname + '/..')
+    , 'node_version' : process.version
     }
 });
 
