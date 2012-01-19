@@ -8,9 +8,10 @@
     "scripts": {
     },
     "dependencies": {
-        "handlebars": ">=0",
-        "optimist"  : ">=0",
-        "nconf"     : ">=0"
+        "handlebars"  : ">=0",
+        "optimist"    : ">=0",
+        "nconf"       : ">=0",
+        "fs-ext"      : ">=0"
     },
     "repository": {
     }

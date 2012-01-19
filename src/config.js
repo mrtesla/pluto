@@ -1,6 +1,12 @@
-var nconf = require('nconf');
+var nconf = require('nconf')
+,   Fs    = require('fs')
+;
 
-nconf.overrides({
+nconf.overrides(
+  { 'pluto' :
+    { 'dir'    : process.cwd()
+    , 'prefix' : Fs.realpathSync(__dirname + '/..')
+    }
 });
 
 //

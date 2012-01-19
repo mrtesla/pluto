@@ -37,7 +37,10 @@ _read_task = function(callback){
 _read_task(function(task){
   var src
   ,   srv
+  ,   original_task
   ;
+
+  original_task = JSON.stringify(task, null, '  ');
 
   task.pluto_root         = process.cwd();
   task.pluto_prefix       = Fs.realpathSync(__dirname + '/../..');
@@ -46,7 +49,7 @@ _read_task(function(task){
   task.user               = task.user || Config.get('user:default');
   task.user_separation    = Config.get('user:separation');
 
-  srv = Path.join(task.pluto_root, 'services', task.task.replace(/:/g, '__'));
+  srv = Path.join(task.pluto_root, 'services', task.task.replace(/:/g, '.'));
   if (Path.existsSync(srv)) {
     process.stderr.write('[ERR] Task already exists: '+task.task);
     process.exit(1);
@@ -56,7 +59,7 @@ _read_task(function(task){
   Fs.mkdirSync(Path.join(srv, 'log'), 0755);
   Fs.mkdirSync(Path.join(srv, 'log', 'main'), 0755);
 
-  Fs.writeFileSync(Path.join(srv, 'task.json'), JSON.stringify(task, null, '  '));
+  Fs.writeFileSync(Path.join(srv, 'task.json'), original_task);
 
   src = Fs.readFileSync(__dirname + '/../../templates/run_process.mu', 'utf8');
   tpl = Handlebars.compile(src);
