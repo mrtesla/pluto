@@ -26,7 +26,7 @@ PLUTO_PREFIX={{quote pluto_prefix}}
 # tell pluto the process is about to start
 #   this is when any start hooks are called
 echo " * Running hooks"
-node $PLUTO_PREFIX/internal/emit/terminated.js {{quote task}}
+script/hooks/terminated {{quote task}}
 
 
 echo "*******************************************"
