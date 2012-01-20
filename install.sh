@@ -19,7 +19,7 @@ echo "root: $PREFIX"
 
 if [[ "x" != "x$NVM_BOOT" ]]
 then
-  NODE_VERSION=v0.6.6
+  NODE_VERSION=v0.6.8
   . $NVM_BOOT
   nvm use $NODE_VERSION 1>/dev/null
   echo "node: $NODE_VERSION"
