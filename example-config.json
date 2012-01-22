@@ -1,0 +1,13 @@
+{
+  "user"   : { "separation": false, "default": "fd" },
+  "runit"  : { "dir": "/usr/local/var/service" },
+  "syslog" : false,
+  "hooks"  :
+    { "starting":
+      [ "env"
+      ]
+    , "terminated":
+      [ "env"
+      ]
+    }
+}
