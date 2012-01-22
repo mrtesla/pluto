@@ -1,10 +1,6 @@
 var Optimist = require('optimist')
 ,   L        = require('../logger')
 ,   S        = require('../api/services')
-,   C        = require('../config')
-//,   Path     = require('path')
-//,   Fs       = require('fs')
-,   Spawn    = require('child_process').spawn
 ;
 
 var service

@@ -76,65 +76,6 @@ Service.prototype.runit_path = function(){
   return this._runit_path;
 };
 
-Service.prototype.is_supervised = function(){
-  var lock
-  ;
-
-  if (this._is_supervised === undefined) {
-    if (this.is_linked()) {
-      lock = Path.join(this.pluto_path(), 'supervise', 'lock');
-
-      try {
-        lock = Fs.openSync(lock, 'r+');
-        Fs.flockSync(lock, 'exnb')
-        this._is_supervised = false;
-      } catch(e) {
-        this._is_supervised = true;
-      }
-
-      try { Fs.closeSync(lock); } catch(e) {};
-    } else {
-      this._is_supervised = false;
-    }
-  }
-
-  return this._is_supervised;
-};
-
-Service.prototype.is_unsupervised = function(){
-  return !this.is_supervised();
-};
-
-Service.prototype.is_linked = function(){
-  var stat
-  ,   path
-  ;
-
-  if (this._is_linked === undefined) {
-    if (this.is_present()) {
-      try { stat = Fs.lstatSync(this.runit_path()); } catch(e) {};
-      if (stat && stat.isSymbolicLink()) {
-        try { path = Fs.readlinkSync(this.runit_path()); } catch(e) {};
-        if (path && path == this.pluto_path()) {
-          this._is_linked = true;
-        } else {
-          this._is_linked = false;
-        }
-      } else {
-        this._is_linked = false;
-      }
-    } else {
-      this._is_linked = false;
-    }
-  }
-
-  return this._is_linked;
-};
-
-Service.prototype.is_unlinked = function(){
-  return !this.is_linked();
-};
-
 Service.prototype.is_present = function(){
   var stat
   ;
@@ -154,6 +95,12 @@ Service.prototype.is_present = function(){
 Service.prototype.is_absent = function(){
   return !this.is_present();
 };
+
+require('./services/link');
+require('./services/unlink');
+
+require('./services/supervise');
+require('./services/unsupervise');
 
 require('./services/up');
 require('./services/down');
