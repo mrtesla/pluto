@@ -1,10 +1,12 @@
 var nconf = require('nconf')
 ,   Fs    = require('fs')
+,   Path  = require('path')
 ;
 
 nconf.overrides(
   { 'pluto' :
     { 'dir'          : process.cwd()
+    , 'services_dir' : Path.join(process.cwd(), 'services')
     , 'prefix'       : Fs.realpathSync(__dirname + '/..')
     , 'node_version' : process.version
     }
