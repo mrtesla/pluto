@@ -99,6 +99,14 @@ exports.find_pattern = function(pattern){
   return found;
 };
 
+exports.generate = function(task, callback){
+  var service
+  ;
+
+  service = new Service(task['task']);
+  service.generate(task, callback);
+};
+
 
 exports._Service = Service = function(name){
   this._name = name;
@@ -159,6 +167,9 @@ Service.prototype.is_present = function(){
 Service.prototype.is_absent = function(){
   return !this.is_present();
 };
+
+require('./services/generate');
+require('./services/destroy');
 
 require('./services/link');
 require('./services/unlink');
