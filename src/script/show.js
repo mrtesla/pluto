@@ -22,6 +22,13 @@ F.forEachAsync(services, function(next, service){
   info += "  " + (service.is_supervised() ? ('is supervised.'.green)     : ('is not supervised.'.red)) + "\n";
   info += "  " + (service.is_up()         ? ('is up and running.'.green) : ('is down.'.red))           + "\n";
 
+  if (service.is_up()) {
+    info   += "  ports:\n";
+    service.task().ports.forEach(function(port){
+      info += "    - " + port.name + "." + port.type + ": " + service.ports()[port.name] + "\n";
+    });
+  }
+
   process.stdout.write(info);
   next();
 });
