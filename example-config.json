@@ -4,10 +4,10 @@
   "syslog" : false,
   "hooks"  :
     { "starting":
-      [ "env"
+      [ ["_sh", "env"]
       ]
     , "terminated":
-      [ "env"
+      [ ["_sh", "env"]
       ]
     }
 }

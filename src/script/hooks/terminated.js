@@ -1,34 +1,19 @@
-var C     = require('../../config')
-,   Spawn = require('child_process').spawn
+var Optimist = require('optimist')
+,   Services = require('../../api/services')
+,   L        = require('../../logger')
+,   H        = require('../../api/hooks')
 ;
 
-var hooks = C.get('hooks:terminated');
-run_hook();
+var service
+;
 
-function run_hook(){
-  if (hooks.length == 0) {
-    process.exit(0);
-  }
+service = Services.get(Optimist.argv._[0]);
 
-  var hook
-  ,   proc
-  ;
-
-  hook = hooks.shift();
-
-  process.stdout.write("   - "+hook+"\n");
-
-  proc = Spawn('sh', ['-c', hook]);
-  proc.stdin.end();
-  proc.stdout.pipe(process.stdout);
-  proc.stderr.pipe(process.stderr);
-  proc.on('exit', function(code){
-    if (code !== 0) {
-      process.stderr.write("     hook failed: "+code+"\n");
-      process.exit(1);
-      return;
-    }
-
-    run_hook();
-  });
+if (!service) {
+  L.error(Optimist.argv._[0], 'missing');
+  process.exit(1);
 }
+
+H.run(service, 'terminated', function(ok){
+  process.exit(ok ? 0 : 1);
+});
