@@ -47,6 +47,8 @@ nconf.defaults(
     , 'terminated' : []
     }
 
+  , 'verbose': false
+
 });
 
 module.exports = nconf;

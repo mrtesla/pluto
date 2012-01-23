@@ -32,7 +32,7 @@ Service.prototype.unsupervise = function(callback){
   }
 
   if (this.is_unsupervised()) {
-    L.notice(this.name(), 'is already unsupervised.');
+    L.warn(this.name(), 'is already unsupervised.');
     callback(true);
     return;
   }

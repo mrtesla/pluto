@@ -9,7 +9,7 @@ Service.prototype.is_supervised = function(){
   ;
 
   if (this._is_supervised === undefined) {
-    if (this.is_linked()) {
+    if (this.is_present()) {
       lock = Path.join(this.pluto_path(), 'supervise', 'lock');
 
       try {
@@ -50,7 +50,7 @@ Service.prototype.supervise = function(callback){
   }
 
   if (this.is_supervised()) {
-    L.notice(this.name(), 'is already supervised.');
+    L.warn(this.name(), 'is already supervised.');
     callback(true);
     return;
   }

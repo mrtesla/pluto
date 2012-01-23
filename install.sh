@@ -46,15 +46,15 @@ else
 fi
 
 find script -type l | xargs rm
-ln -s ../node_modules/pluto/script/start.sh       script/start
-ln -s ../node_modules/pluto/script/stop.sh        script/stop
+ln -s ../node_modules/pluto/script/run.sh         script/start
+ln -s ../node_modules/pluto/script/run.sh         script/stop
 
 ln -s ../node_modules/pluto/script/run.sh         script/link
 ln -s ../node_modules/pluto/script/run.sh         script/unlink
 
 ln -s ../node_modules/pluto/script/run.sh         script/up
 ln -s ../node_modules/pluto/script/run.sh         script/down
-ln -s ../node_modules/pluto/script/restart.sh     script/restart
+ln -s ../node_modules/pluto/script/run.sh         script/restart
 ln -s ../node_modules/pluto/script/run.sh         script/status
 
 ln -s ../../node_modules/pluto/script/generate.sh script/generate/task

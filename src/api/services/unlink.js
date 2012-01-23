@@ -27,7 +27,7 @@ Service.prototype.unlink = function(callback){
   }
 
   if (this.is_unlinked()) {
-    L.notice(this.name(), 'is already unlinked.');
+    L.warn(this.name(), 'is already unlinked.');
     callback(true);
     return;
   }

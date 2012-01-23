@@ -54,7 +54,7 @@ Service.prototype.up = function(callback){
   }
 
   if (this.is_up()) {
-    L.notice(this.name(), 'is already up.');
+    L.warn(this.name(), 'is already up.');
     callback(true);
     return;
   }
@@ -65,8 +65,10 @@ Service.prototype.up = function(callback){
   srv = Spawn('sv', ['-v', 'up', this.fs_name()]);
 
   srv.stdin.end();
-  srv.stderr.pipe(process.stderr);
-  srv.stdout.pipe(process.stdout);
+  if (C.get('verbose')) {
+    srv.stderr.pipe(process.stderr);
+    srv.stdout.pipe(process.stdout);
+  }
 
   srv.on('exit', function (code) {
     if (code === 0) {

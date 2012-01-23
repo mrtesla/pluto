@@ -1,22 +1,25 @@
 var Optimist = require('optimist')
 ,   L        = require('../logger')
 ,   S        = require('../api/services')
+,   F        = require('futures')
 ;
 
-var service
+var services
 ;
 
-if (Optimist.argv._.length != 1) {
+if (Optimist.argv._.length < 1) {
   L.error("Missing argument: <task>");
   process.exit(1);
 }
 
-service = S.get(Optimist.argv._[0]);
-
-service.link(function(ok){
-  if (!ok) { process.exit(1); }
-  service.reset();
-  service.supervise(function(ok){
-    process.exit(ok ? 0 : 1);
+services = S.find(Optimist.argv._);
+F.forEachAsync(services, function(next, service){
+  service.link(function(ok){
+    if (!ok) { process.exit(1); }
+    service.reset();
+    service.supervise(function(ok){
+      if (!ok) { process.exit(1) }
+      next();
+    });
   });
 });

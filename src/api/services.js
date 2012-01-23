@@ -1,22 +1,32 @@
 var Fs    = require('fs-ext')
 ,   Path  = require('path')
 ,   Spawn = require('child_process').spawn
+,   U     = require('util')
 ,   C     = require('../config')
 ,   L     = require('../logger')
 ;
 
 var Service
+,   uniqueArray
 ;
 
 var services
+,   index
 ;
 
+uniqueArray = function(arr) {
+  var o = {}, i, l = arr.length, r = [];
+  for(i=0; i<l;i+=1) o[arr[i]] = arr[i];
+  for(i in o) r.push(o[i]);
+  return r;
+};
 
 exports.load = function(){
   var names
   ;
 
   services = {};
+  index    = {};
 
   names = Fs.readdirSync(C.get('pluto:services_dir'));
 
@@ -33,6 +43,56 @@ exports.load = function(){
 exports.get = function(name){
   if (services === undefined) { exports.load(); }
   return services[name];
+};
+
+exports.find = function(name){
+  if (U.isArray(name)) {
+    var services = []
+    ;
+
+    name.forEach(function(name){
+      services = services.concat(exports.find(name));
+    });
+
+    return uniqueArray(services);
+  } else if (name.indexOf('*') == -1){
+    return exports.find_exact(name);
+  } else {
+    return exports.find_pattern(name);
+  }
+};
+
+exports.find_exact = function(name){
+  if (services === undefined) { exports.load(); }
+
+  var service
+  ;
+
+  service = services[name];
+
+  if (service) {
+    return [service];
+  } else {
+    L.error(name, 'not found!');
+    return [];
+  }
+};
+
+exports.find_pattern = function(pattern){
+  if (services === undefined) { exports.load(); }
+
+  pattern = pattern.replace(/\./g, '\\.');
+  pattern = pattern.replace(/\*\*/g, '.+');
+  pattern = pattern.replace(/\*/g, '[^:]+');
+  pattern = pattern.replace(/\?/g, '[^:]');
+
+  pattern = new RegExp('^' + pattern + '$', 'i');
+
+  return Object.keys(services).filter(function(name){
+    return pattern.test(name);
+  }).map(function(name){
+    return services[name];
+  });
 };
 
 
@@ -104,3 +164,7 @@ require('./services/unsupervise');
 
 require('./services/up');
 require('./services/down');
+
+require('./services/start');
+require('./services/stop');
+require('./services/restart');

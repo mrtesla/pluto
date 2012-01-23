@@ -1,5 +1,6 @@
-var Fs    = require('fs-ext')
-,   L     = require('../../logger')
+var Fs      = require('fs-ext')
+,   Path    = require('path')
+,   L       = require('../../logger')
 ,   Service = require('../services')._Service;
 ;
 
@@ -44,12 +45,13 @@ Service.prototype.link = function(callback){
   }
 
   if (this.is_linked()) {
-    L.notice(this.name(), 'is already linked.');
+    L.warn(this.name(), 'is already linked.');
     callback(true);
     return;
   }
 
   try {
+    Fs.writeFileSync(Path.join(this.pluto_path(), 'down'), '');
     Fs.symlinkSync(this.pluto_path(), this.runit_path(), 'dir');
     L.info(this.name(), 'is linked.');
     callback(true);

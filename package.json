@@ -12,7 +12,8 @@
         "optimist"    : ">=0",
         "nconf"       : ">=0",
         "fs-ext"      : ">=0",
-        "devnull"     : ">=0"
+        "winston"     : ">=0",
+        "futures"     : ">=0"
     },
     "repository": {
     }
