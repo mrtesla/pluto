@@ -63,6 +63,7 @@ ln -s ../../node_modules/pluto/script/generate.sh script/generate/service
 
 ln -s ../../node_modules/pluto/script/destroy.sh  script/destroy/service
 
+ln -s ../../node_modules/pluto/script/utils.sh    script/utils/dump-ports
 ln -s ../../node_modules/pluto/script/utils.sh    script/utils/get-port
 
 ln -s ../../node_modules/pluto/script/hooks.sh    script/hooks/starting

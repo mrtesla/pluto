@@ -25,6 +25,8 @@ Service.prototype.generate = function(task, callback){
   task.user               = task.user || C.get('user:default');
   task.user_separation    = C.get('user:separation');
 
+  task.env.push({ name: 'PLUTO_SERVICE', value: task.task });
+
   try {
     Fs.mkdirSync(this.pluto_path(), 0755);
     Fs.mkdirSync(Path.join(this.pluto_path(), 'log'), 0755);

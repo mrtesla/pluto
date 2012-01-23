@@ -19,7 +19,7 @@ echo " * Loading NVM"
 # switch to Pluto NODE_VERSION
 echo " * Loading Pluto environment"
 cd {{quote pluto_root}}
-nvm use {{quote pluto_node_version}}
+nvm use {{quote pluto_node_version}} 1>/dev/null
 PLUTO_PREFIX={{quote pluto_prefix}}
 
 
@@ -27,7 +27,6 @@ PLUTO_PREFIX={{quote pluto_prefix}}
 #   this is when any start hooks are called
 echo " * Running hooks"
 script/hooks/terminated {{quote task}}
-
 
 echo "*******************************************"
 echo ""

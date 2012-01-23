@@ -25,7 +25,7 @@ export rvm_pretty_print=0
 # switch to Pluto NODE_VERSION
 echo " * Loading Pluto environment"
 cd {{quote pluto_root}}
-nvm use {{quote pluto_node_version}}
+nvm use {{quote pluto_node_version}} 1>/dev/null
 PLUTO_PREFIX={{quote pluto_prefix}}
 
 # get port numbers
@@ -40,6 +40,7 @@ echo " * Allocating port numbers:"
     echo "   - {{name}}=${{name}}"
   {{/unless}}
 {{/ports}}
+script/utils/dump-ports {{quote task}}
 
 # export ENV
 echo " * Exporting environment:"
@@ -55,7 +56,7 @@ script/hooks/starting {{quote task}}
 
 # deactivate Pluto node
 echo " * Unloading Pluto environment"
-nvm deactivate | grep -v 'removed from'
+nvm deactivate 1>/dev/null
 unset RVM_BOOT
 unset NVM_BOOT
 unset NVM_PATH
@@ -65,11 +66,11 @@ unset PLUTO_PREFIX
 
 # switching to $NODE_VERSION
 echo " * Selecting Node version: ${NODE_VERSION:-none}"
-[[ "x$NODE_VERSION" != "x" ]] && nvm use $NODE_VERSION
+[[ "x$NODE_VERSION" != "x" ]] && nvm use $NODE_VERSION 1>/dev/null
 
 # switching to $RUBY_VERSION
 echo " * Selecting Ruby version: ${RUBY_VERSION:-none}"
-[[ "x$RUBY_VERSION" != "x" ]] && rvm use $RUBY_VERSION
+[[ "x$RUBY_VERSION" != "x" ]] && rvm use $RUBY_VERSION 1>/dev/null
 
 echo " * Switching to user: {{user}}"
 export USER={{quote user}}

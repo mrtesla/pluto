@@ -121,6 +121,7 @@ Service.prototype.reset = function(){
   this._is_up         = undefined;
   this._is_linked     = undefined;
   this._is_present    = undefined;
+  this._ports         = undefined;
 };
 
 Service.prototype.name = function(){
@@ -168,6 +169,8 @@ Service.prototype.is_absent = function(){
   return !this.is_present();
 };
 
+require('./services/task');
+require('./services/ports');
 require('./services/generate');
 require('./services/destroy');
 
