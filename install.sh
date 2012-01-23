@@ -55,7 +55,8 @@ ln -s ../node_modules/pluto/script/run.sh         script/unlink
 ln -s ../node_modules/pluto/script/run.sh         script/up
 ln -s ../node_modules/pluto/script/run.sh         script/down
 ln -s ../node_modules/pluto/script/run.sh         script/restart
-ln -s ../node_modules/pluto/script/run.sh         script/status
+ln -s ../node_modules/pluto/script/run.sh         script/show
+ln -s ../node_modules/pluto/script/run.sh         script/list
 
 ln -s ../../node_modules/pluto/script/generate.sh script/generate/task
 ln -s ../../node_modules/pluto/script/generate.sh script/generate/service

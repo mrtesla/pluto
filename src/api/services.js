@@ -16,7 +16,7 @@ var services
 
 uniqueArray = function(arr) {
   var o = {}, i, l = arr.length, r = [];
-  for(i=0; i<l;i+=1) o[arr[i]] = arr[i];
+  for(i=0; i<l;i+=1) o[arr[i].name()] = arr[i];
   for(i in o) r.push(o[i]);
   return r;
 };
@@ -54,7 +54,8 @@ exports.find = function(name){
       services = services.concat(exports.find(name));
     });
 
-    return uniqueArray(services);
+    services = uniqueArray(services);
+    return services;
   } else if (name.indexOf('*') == -1){
     return exports.find_exact(name);
   } else {
@@ -88,11 +89,14 @@ exports.find_pattern = function(pattern){
 
   pattern = new RegExp('^' + pattern + '$', 'i');
 
-  return Object.keys(services).filter(function(name){
-    return pattern.test(name);
-  }).map(function(name){
-    return services[name];
+  var found = []
+  ;
+
+  Object.keys(services).forEach(function(name){
+    if (pattern.test(name)) { found.push(services[name]); }
   });
+
+  return found;
 };
 
 

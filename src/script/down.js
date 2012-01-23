@@ -7,7 +7,7 @@ var Optimist = require('optimist')
 var services
 ;
 
-if (Optimist.argv._.length != 1) {
+if (Optimist.argv._.length < 1) {
   L.error("Missing argument: <task>");
   process.exit(1);
 }
