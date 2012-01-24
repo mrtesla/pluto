@@ -6,6 +6,8 @@ var Fs    = require('fs-ext')
 ,   L     = require('../logger')
 ;
 
+var ArgumentList  = (function(){ return arguments.constructor; })();
+
 var Service
 ,   uniqueArray
 ;
@@ -56,6 +58,8 @@ exports.find = function(name){
 
     services = uniqueArray(services);
     return services;
+  } if (name instanceof ArgumentList) {
+    return exports.find(Array.prototype.slice.call(name, 0));
   } else if (name.indexOf('*') == -1){
     return exports.find_exact(name);
   } else {

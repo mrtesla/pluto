@@ -3,23 +3,15 @@ var Optimist = require('optimist')
 ,   L        = require('../../logger')
 ;
 
-exports.generate = function(callback){
+exports.generate = function(command, callback){
   var task
   ;
-
-  if (Optimist.argv._.length != 1) {
-    L.error("Invalid command: ", Optimist.argv._.join(' '));
-    L.help("Usage: script/generate/task <options> command");
-    L.help("  command must be passed as a single argument.");
-    callback(false);
-    return;
-  }
 
   task =
     { "task"    : null
     , "user"    : C.get('user:default')
     , "root"    : process.env['ORIGINAL_PWD']
-    , "command" : Optimist.argv._.join(' ')
+    , "command" : command
     , "env"     : []
     , "ports"   : []
   };

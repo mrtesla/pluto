@@ -36,11 +36,11 @@ echo " * Allocating port numbers:"
     echo "   - {{name}}=${{name}}"
   {{/if}}
   {{#unless port}}
-    export {{name}}=$(script/utils/get-port)
+    export {{name}}=$(bin/pluto utils get-port)
     echo "   - {{name}}=${{name}}"
   {{/unless}}
 {{/ports}}
-script/utils/dump-ports {{quote task}}
+bin/pluto utils dump-ports {{quote task}}
 
 # export ENV
 echo " * Exporting environment:"
@@ -52,7 +52,7 @@ echo "   - {{name}}=${{name}}"
 # tell pluto the process is about to start
 #   this is when any start hooks are called
 echo " * Running hooks"
-script/hooks/starting {{quote task}}
+bin/pluto hooks starting {{quote task}}
 
 # deactivate Pluto node
 echo " * Unloading Pluto environment"

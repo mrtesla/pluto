@@ -1,2 +1,17 @@
-#!/usr/bin/env bash
-echo "Hello there!"
+#!/usr/bin/env node
+// vim: set ft=js
+
+var Fs   = require('fs')
+,   Path = require('path')
+;
+
+var path
+;
+
+path = Fs.realpathSync(process.argv[1]);
+if (Path.existsSync(Path.resolve(path, '../../../../services'))) {
+  process.env['ORIGINAL_PWD'] = process.cwd();
+  process.chdir(Path.resolve(path, '../../../..'));
+}
+
+require(__dirname+'/../src/cli').run();

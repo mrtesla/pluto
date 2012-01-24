@@ -27,12 +27,8 @@ fi
 
 mkdir -p                  \
   $PREFIX                 \
-  $PREFIX/services        \
-  $PREFIX/script          \
-  $PREFIX/script/generate \
-  $PREFIX/script/destroy  \
-  $PREFIX/script/hooks    \
-  $PREFIX/script/utils
+  $PREFIX/bin             \
+  $PREFIX/services
 
 cd $PREFIX
 
@@ -45,27 +41,6 @@ else
   npm install git://github.com/mrtesla/pluto.git#$PLUTO_VERSION
 fi
 
-find script -type l | xargs rm
-ln -s ../node_modules/pluto/script/run.sh         script/start
-ln -s ../node_modules/pluto/script/run.sh         script/stop
-
-ln -s ../node_modules/pluto/script/run.sh         script/link
-ln -s ../node_modules/pluto/script/run.sh         script/unlink
-
-ln -s ../node_modules/pluto/script/run.sh         script/up
-ln -s ../node_modules/pluto/script/run.sh         script/down
-ln -s ../node_modules/pluto/script/run.sh         script/restart
-ln -s ../node_modules/pluto/script/run.sh         script/show
-ln -s ../node_modules/pluto/script/run.sh         script/list
-
-ln -s ../../node_modules/pluto/script/generate.sh script/generate/task
-ln -s ../../node_modules/pluto/script/generate.sh script/generate/service
-
-ln -s ../../node_modules/pluto/script/destroy.sh  script/destroy/service
-
-ln -s ../../node_modules/pluto/script/utils.sh    script/utils/dump-ports
-ln -s ../../node_modules/pluto/script/utils.sh    script/utils/get-port
-
-ln -s ../../node_modules/pluto/script/hooks.sh    script/hooks/starting
-ln -s ../../node_modules/pluto/script/hooks.sh    script/hooks/terminated
-find script -type l | xargs chmod a+x
+rm -f bin/pluto
+ln -s ../node_modules/.bin/pluto bin/pluto
+chmod a+x bin/pluto

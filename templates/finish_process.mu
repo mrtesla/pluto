@@ -8,6 +8,8 @@ echo "*******************************************"
 echo "*** Pluto is terminating: {{task}}"
 echo "*******************************************"
 
+export EXIT_CODE="$1"
+export EXIT_STATUS="$2"
 
 # load NVM
 echo " * Loading NVM"
@@ -26,7 +28,7 @@ PLUTO_PREFIX={{quote pluto_prefix}}
 # tell pluto the process is about to start
 #   this is when any start hooks are called
 echo " * Running hooks"
-script/hooks/terminated {{quote task}}
+bin/pluto hooks terminated {{quote task}}
 
 echo "*******************************************"
 echo ""
