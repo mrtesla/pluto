@@ -4,28 +4,32 @@ var nconf  = require('nconf')
 ,   Config = require('./config_defaults')
 ;
 
-nconf.overrides(
-  { 'pluto' : Config.overrides
-  });
+if (!nconf._loaded) {
+  nconf._loaded = true;
 
-//
-// 2. `process.env`
-// 3. `process.argv`
-//
-nconf.env();
-nconf.argv();
+  nconf.overrides(
+    { 'pluto' : Config.overrides
+    });
 
-//
-// 4. Values in `config.json`
-//
-nconf.file({ file: 'config.json' });
+  //
+  // 2. `process.env`
+  // 3. `process.argv`
+  //
+  nconf.env();
+  nconf.argv();
 
-//
-// 5. Any default values
-//
-nconf.defaults(
-  { 'pluto':   Config.defaults
-  , 'verbose': false
-  });
+  //
+  // 4. Values in `config.json`
+  //
+  nconf.file({ file: 'config.json' });
+
+  //
+  // 5. Any default values
+  //
+  nconf.defaults(
+    { 'pluto':   Config.defaults
+    , 'verbose': false
+    });
+}
 
 module.exports = nconf;
