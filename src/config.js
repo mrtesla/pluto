@@ -1,16 +1,12 @@
-var nconf = require('nconf')
-,   Fs    = require('fs')
-,   Path  = require('path')
+var nconf  = require('nconf')
+,   Fs     = require('fs')
+,   Path   = require('path')
+,   Config = require('./config_defaults')
 ;
 
 nconf.overrides(
-  { 'pluto' :
-    { 'dir'          : process.cwd()
-    , 'services_dir' : Path.join(process.cwd(), 'services')
-    , 'prefix'       : Fs.realpathSync(__dirname + '/..')
-    , 'node_version' : process.version
-    }
-});
+  { 'pluto' : Config.overrides
+  });
 
 //
 // 2. `process.env`
@@ -28,27 +24,8 @@ nconf.file({ file: 'config.json' });
 // 5. Any default values
 //
 nconf.defaults(
-  { 'user':
-    { 'separation' : true
-    , 'default'    : 'pluto'
-    }
-
-  , 'runit' :
-    { 'dir': '/etc/service'
-    }
-
-  , 'syslog':
-    { 'host'     : '127.0.0.1'
-    , 'port'     : 514
-    }
-
-  , 'hooks':
-    { 'starting'   : []
-    , 'terminated' : []
-    }
-
+  { 'pluto':   Config.defaults
   , 'verbose': false
-
-});
+  });
 
 module.exports = nconf;

@@ -61,7 +61,7 @@ Service.prototype.up = function(callback){
 
   try { Fs.unlinkSync(Path.join(service.pluto_path(), 'down')); } catch(e) {};
 
-  process.env['SVDIR'] = C.get('runit:dir');
+  process.env['SVDIR'] = C.get('pluto:runit:dir');
   srv = Spawn('sv', ['-v', 'up', this.fs_name()]);
 
   srv.stdin.end();
