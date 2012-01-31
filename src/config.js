@@ -5,7 +5,7 @@ var nconf  = require('nconf')
 ;
 
 if (!nconf._loaded) {
-  nconf._loaded = true;
+  nconf._loaded = 'by pluto';
 
   nconf.overrides(
     { 'pluto' : Config.overrides
