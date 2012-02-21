@@ -6,7 +6,7 @@ exports.overrides =
   { 'dir'          : process.cwd()
   , 'services_dir' : Path.join(process.cwd(), 'services')
   , 'prefix'       : Fs.realpathSync(__dirname + '/..')
-  , 'node_version' : process.version
+  , 'node_version' : process.version.slice(1)
   };
 
 exports.defaults =
