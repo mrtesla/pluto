@@ -3,11 +3,11 @@ var L     = require('../../logger')
 ;
 
 exports.run = function(command){
-  if (arguments.length > 0) {
+  if (arguments.length > 1) {
     help(arguments);
   }
 
-  read_task(function(task){
+  read_task(arguments[0], function(task){
     S.generate(task, function(ok){
       process.exit(ok ? 0 : 1);
     });
@@ -21,7 +21,12 @@ function help(args){
   process.exit(1);
 }
 
-function read_task(callback){
+function read_task(arg, callback){
+  if (arg) {
+    callback(JSON.parse(arg));
+    return;
+  }
+
   var buffer
   ;
 
