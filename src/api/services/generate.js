@@ -20,7 +20,7 @@ Service.prototype.generate = function(task, callback){
 
   task.pluto_root         = C.get('pluto:dir');
   task.pluto_prefix       = C.get('pluto:prefix');
-  task.pluto_node_version = C.get('pluto:node_version');
+  task.pluto_node         = task.pluto_root + '/env/node/' + C.get('pluto:node_version') + '/bin/node';
   task.pluto_logger       = C.get('pluto:syslog');
   task.user               = task.user || C.get('pluto:user:default');
   task.user_separation    = C.get('pluto:user:separation');

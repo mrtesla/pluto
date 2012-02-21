@@ -3,7 +3,6 @@
 # redirect STDERR to STDOUT
 exec 2>&1
 
-
 echo "*******************************************"
 echo "*** Pluto is terminating: {{task}}"
 echo "*******************************************"
@@ -11,24 +10,13 @@ echo "*******************************************"
 export EXIT_CODE="$1"
 export EXIT_STATUS="$2"
 
-# load NVM
-echo " * Loading NVM"
-[[ -f /usr/local/nvm/nvm.sh ]] && NVM_BOOT=/usr/local/nvm/nvm.sh
-[[ -f $HOME/.nvm/nvm.sh     ]] && NVM_BOOT=$HOME/.nvm/nvm.sh
-[[ "x" != "x$NVM_BOOT"      ]] && . $NVM_BOOT
-
-
-# switch to Pluto NODE_VERSION
 echo " * Loading Pluto environment"
-cd {{quote pluto_root}}
-nvm use {{quote pluto_node_version}} 1>/dev/null
+PLUTO_ROOT={{quote pluto_root}}
+PLUTO_NODE={{quote pluto_node}}
 PLUTO_PREFIX={{quote pluto_prefix}}
 
-
-# tell pluto the process is about to start
-#   this is when any start hooks are called
 echo " * Running hooks"
-bin/pluto hooks terminated {{quote task}}
+PLUTO_ROOT=$PLUTO_ROOT "$PLUTO_NODE" "$PLUTO_PREFIX/bin/pluto" hooks terminated {{quote task}}
 
 echo "*******************************************"
 echo ""

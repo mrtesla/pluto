@@ -8,25 +8,11 @@ echo "*** Pluto is booting: {{task}}"
 echo "*******************************************"
 
 
-# load NVM
-echo " * Loading NVM"
-[[ -f /usr/local/nvm/nvm.sh ]] && NVM_BOOT=/usr/local/nvm/nvm.sh
-[[ -f $HOME/.nvm/nvm.sh     ]] && NVM_BOOT=$HOME/.nvm/nvm.sh
-[[ "x" != "x$NVM_BOOT"      ]] && . $NVM_BOOT
-
-# load RVM
-echo " * Loading RVM"
-export rvm_project_rvmrc=0
-export rvm_pretty_print=0
-[[ -f /usr/local/rvm/scripts/rvm ]] && RVM_BOOT=/usr/local/rvm/scripts/rvm
-[[ -f $HOME/.rvm/scripts/rvm     ]] && RVM_BOOT=$HOME/.rvm/scripts/rvm
-[[ "x" != "x$RVM_BOOT"           ]] && . $RVM_BOOT
-
-# switch to Pluto NODE_VERSION
 echo " * Loading Pluto environment"
-cd {{quote pluto_root}}
-nvm use {{quote pluto_node_version}} 1>/dev/null
+PLUTO_ROOT={{quote pluto_root}}
+PLUTO_NODE={{quote pluto_node}}
 PLUTO_PREFIX={{quote pluto_prefix}}
+
 
 # get port numbers
 echo " * Allocating port numbers:"
@@ -36,11 +22,12 @@ echo " * Allocating port numbers:"
     echo "   - {{name}}=${{name}}"
   {{/if}}
   {{#unless port}}
-    export {{name}}=$(bin/pluto utils get-port)
+    export {{name}}=$(PLUTO_ROOT=$PLUTO_ROOT "$PLUTO_NODE" "$PLUTO_PREFIX/bin/pluto" utils get-port)
     echo "   - {{name}}=${{name}}"
   {{/unless}}
 {{/ports}}
-bin/pluto utils dump-ports {{quote task}}
+PLUTO_ROOT=$PLUTO_ROOT "$PLUTO_NODE" "$PLUTO_PREFIX/bin/pluto" utils dump-ports {{quote task}}
+
 
 # export ENV
 echo " * Exporting environment:"
@@ -49,35 +36,32 @@ export {{name}}={{quote value}}
 echo "   - {{name}}=${{name}}"
 {{/env}}
 
+
 # tell pluto the process is about to start
 #   this is when any start hooks are called
 echo " * Running hooks"
-bin/pluto hooks starting {{quote task}}
+PLUTO_ROOT=$PLUTO_ROOT "$PLUTO_NODE" "$PLUTO_PREFIX/bin/pluto" hooks starting {{quote task}}
 
-# deactivate Pluto node
-echo " * Unloading Pluto environment"
-nvm deactivate 1>/dev/null
-unset RVM_BOOT
-unset NVM_BOOT
-unset NVM_PATH
-unset NVM_BIN
-unset PLUTO_PREFIX
 
 # switching to $NODE_VERSION
 echo " * Selecting Node version: ${NODE_VERSION:-none}"
-[[ "x$NODE_VERSION" != "x" ]] && nvm use $NODE_VERSION 1>/dev/null
+[[ "x$NODE_VERSION" != "x" ]] && export PATH="$PLUTO_ROOT/env/node/$NODE_VERSION/bin:$PATH"
+
 
 # switching to $RUBY_VERSION
 echo " * Selecting Ruby version: ${RUBY_VERSION:-none}"
-[[ "x$RUBY_VERSION" != "x" ]] && rvm use $RUBY_VERSION 1>/dev/null
+[[ "x$RUBY_VERSION" != "x" ]] && export PATH="$PLUTO_ROOT/env/ruby/$RUBY_VERSION/bin:$PATH"
+
 
 echo " * Switching to user: {{user}}"
 export USER={{quote user}}
 export HOME="$(eval echo ~$USER)"
 cd {{quote root}}
 
+
 echo "*******************************************"
 echo ""
+
 
 {{#if user_separation}}
 # start the process
