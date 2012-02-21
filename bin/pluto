@@ -8,12 +8,17 @@ var Fs   = require('fs')
 var path
 ;
 
-path = Fs.realpathSync(process.argv[1]);
+if (process.env['PLUTO_ROOT']) {
+  path = Fs.realpathSync(process.env['PLUTO_ROOT']);
 
-while (true) {
-  if (Path.existsSync(Path.join(path, 'services'))) { break; }
-  if (path == '/') { path = null; break; }
-  path = Path.resolve(path, '..');
+} else {
+  path = Fs.realpathSync(process.argv[1]);
+
+  while (true) {
+    if (Path.existsSync(Path.join(path, 'services'))) { break; }
+    if (path == '/') { path = null; break; }
+    path = Path.resolve(path, '..');
+  }
 }
 
 if (path) {
