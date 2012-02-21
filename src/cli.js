@@ -9,6 +9,7 @@ commands =
 
 , 'list'         : 'list'
 , 'show'         : 'show'
+, 'status'       : 'status'
 
 , 'start'        : 'start'
 , 'restart'      : 'restart'
