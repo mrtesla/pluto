@@ -148,7 +148,7 @@ Service.prototype.pluto_path = function(){
 
 Service.prototype.runit_path = function(){
   if (this._runit_path === undefined) {
-    this._runit_path = Path.join(C.get('runit:dir'), this.fs_name());
+    this._runit_path = Path.join(C.get('pluto:runit:dir'), this.fs_name());
   }
   return this._runit_path;
 };

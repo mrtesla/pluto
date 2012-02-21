@@ -9,7 +9,7 @@ exports.run = function(service, name, callback){
   var hooks
   ;
 
-  hooks = C.get('hooks:'+name);
+  hooks = C.get('pluto:hooks:'+name);
   hooks = hooks || [];
 
   F.forEachAsync(hooks, function(next, hook){

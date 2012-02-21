@@ -41,7 +41,7 @@ Service.prototype.down = function(callback){
     return;
   }
 
-  process.env['SVDIR'] = C.get('runit:dir');
+  process.env['SVDIR'] = C.get('pluto:runit:dir');
   srv = Spawn('sv', ['-v', 'down', this.fs_name()]);
 
   srv.stdin.end();

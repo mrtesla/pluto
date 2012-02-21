@@ -9,7 +9,7 @@ exports.generate = function(command, callback){
 
   task =
     { "task"    : null
-    , "user"    : C.get('user:default')
+    , "user"    : C.get('pluto:user:default')
     , "root"    : process.env['ORIGINAL_PWD']
     , "command" : command
     , "env"     : []

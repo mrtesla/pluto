@@ -9,9 +9,16 @@ var path
 ;
 
 path = Fs.realpathSync(process.argv[1]);
-if (Path.existsSync(Path.resolve(path, '../../../../services'))) {
+
+while (true) {
+  if (Path.existsSync(Path.join(path, 'services'))) { break; }
+  if (path == '/') { path = null; break; }
+  path = Path.resolve(path, '..');
+}
+
+if (path) {
   process.env['ORIGINAL_PWD'] = process.cwd();
-  process.chdir(Path.resolve(path, '../../../..'));
+  process.chdir(path);
 }
 
 require(__dirname+'/../src/cli').run();

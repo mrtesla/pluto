@@ -60,7 +60,6 @@ nvm deactivate 1>/dev/null
 unset RVM_BOOT
 unset NVM_BOOT
 unset NVM_PATH
-unset NVM_DIR
 unset NVM_BIN
 unset PLUTO_PREFIX
 

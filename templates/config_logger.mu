@@ -1,3 +1,3 @@
 {{#pluto_logger}}
-#U{{host}}:{{port}}
+U{{host}}:{{port}}
 {{/pluto_logger}}
