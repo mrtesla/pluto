@@ -3,8 +3,8 @@ var Path = require('path')
 ;
 
 exports.overrides =
-  { 'dir'          : process.cwd()
-  , 'services_dir' : Path.join(process.cwd(), 'services')
+  { 'dir'          : (process.env['PLUTO_ROOT']          || process.cwd())
+  , 'services_dir' : (process.env['PLUTO_SRV_AVAILABLE'] || Path.join(process.cwd(), 'services'))
   , 'prefix'       : Fs.realpathSync(__dirname + '/..')
   , 'node_version' : process.version.slice(1)
   };
@@ -16,7 +16,7 @@ exports.defaults =
     }
 
   , 'runit' :
-    { 'dir': '/etc/service'
+    { 'dir': (process.env['PLUTO_SRV_ENABLED'] || '/etc/service')
     }
 
   , 'syslog':
