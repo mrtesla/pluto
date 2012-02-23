@@ -33,6 +33,10 @@ exports.run = function(){
     patterns.unshift(arguments[0]);
   }
 
+  if (patterns.length == 0) {
+    patterns.push('**');
+  }
+
   services = S.find(patterns);
   F.forEachAsync(services, function(next, service){
     if (!filter(service)) {
