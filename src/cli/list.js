@@ -4,29 +4,36 @@ var L   = require('../logger')
 ,   TTY = require('tty')
 ;
 
-exports.run = function(filter){
+
+var filters
+;
+
+filters = {
+  'all'        : function(s){ return true; },
+  'linked'     : function(s){ return s.is_linked(); },
+  'supervised' : function(s){ return s.is_supervised(); },
+  'up'         : function(s){ return s.is_up(); },
+  'down'       : function(s){ return s.is_down(); }
+};
+
+exports.run = function(){
   var services
+  ,   filter
+  ,   patterns
   ;
 
-  if (arguments.length > 1) {
-    help(arguments);
-  }
+  patterns = Array.prototype.slice.call(arguments, 1);
 
+  filter = arguments[0];
   filter = filter || 'all';
+  filter = filters[filter];
 
-  filter = ({
-    'all'        : function(s){ return true; },
-    'linked'     : function(s){ return s.is_linked(); },
-    'supervised' : function(s){ return s.is_supervised(); },
-    'up'         : function(s){ return s.is_up(); },
-    'down'       : function(s){ return s.is_down(); }
-  })[filter];
-
-  if (!filter) {
-    help(arguments);
+  if (!filter)
+    filter = filters['all'];
+    patterns.unshift(arguments[0]);
   }
 
-  services = S.find('**');
+  services = S.find(patterns);
   F.forEachAsync(services, function(next, service){
     if (!filter(service)) {
       next();
