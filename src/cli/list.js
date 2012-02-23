@@ -28,7 +28,7 @@ exports.run = function(){
   filter = filter || 'all';
   filter = filters[filter];
 
-  if (!filter)
+  if (!filter) {
     filter = filters['all'];
     patterns.unshift(arguments[0]);
   }
